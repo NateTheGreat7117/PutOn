@@ -1,0 +1,82 @@
+.Row1,
+.Row2 {
+  display: flex;
+}
+
+.Row1 {
+  margin-top: 50px;
+  margin-bottom: 50px;
+  border-top: 1px solid rgb(105, 100, 100);
+  border-bottom: 1px solid rgb(105, 100, 100);
+}
+
+.Row2 {
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10  px;
+  margin-bottom: 10px;
+}
+
+.box {
+  text-align: center;
+  position: relative;
+}
+
+.Row1 .box {
+  flex: 1; /* Makes all boxes equal width */
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.Row2 .box {
+  flex: 0 0 auto;
+  border: None;
+  font-size: 10.5px;
+  padding: 10px 20px;
+}
+
+.box:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 20%;   /* push down a little so it doesn’t touch the top */
+  bottom: 20%;/* leave space above the bottom */
+  width: 1px;
+  background: rgb(105, 100, 100);
+}
+
+.copyright {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 12.5px;
+}
+
+.email-container {
+  display: flex;
+  width: 400px; /* adjust width as needed */
+  border: 1px solid #ccc;
+}
+
+.email-input {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.submit-btn {
+  background-color: #08223b; /* navy blue */
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.submit-btn:hover {
+  background-color: #0b3055; /* slightly lighter on hover */
+}

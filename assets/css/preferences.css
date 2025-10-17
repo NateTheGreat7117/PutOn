@@ -1,0 +1,37 @@
+body {
+  margin: 0;
+  font-family: "garet", "Georgia", serif;
+  color: #333;
+  padding-top: 50px; /* match this to header height */
+}
+
+.small-text {
+  font-size: 12px;
+}
+
+.grid {
+    column-count: 6;
+    column-gap: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
+
+    position: fixed;
+    top: 70px;         /* adjust to sit below header */
+    bottom: 0;         /* anchor to bottom */
+    right: 0;
+    overflow-y: auto;  /* enables independent scrolling */
+}
+
+.grid img {
+    width: 100%;
+    display: block;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+@media (max-width: 1200px) { .grid { column-count: 4; } }
+@media (max-width: 800px)  { .grid { column-count: 3; } }
+@media (max-width: 500px)  { .grid { column-count: 2; } }

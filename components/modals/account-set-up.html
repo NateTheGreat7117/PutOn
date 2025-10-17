@@ -1,0 +1,68 @@
+<link rel="stylesheet" href="/assets/css/create-account.css">
+
+<div class="create-account-page">
+  <img src="/assets/images/icons/close.png" alt="close sign up page" class="close-page">
+  <h3>Create Account</h3>
+
+  <form id="signup-form" novalidate>
+    <div class="input-group">
+      <small id="name-required" class="field-required-text">
+        * Field required
+      </small>
+      <input type="text" id="name" name="name" placeholder=" " autocomplete="off" required>
+      <label for="name">Full Legal Name</label>
+    </div>
+
+    <div class="input-group">
+      <small id="username-required" class="field-required-text">
+        * Field required
+      </small>
+      <small id="username-existing" class="field-required-text">
+        * Username already exists
+      </small>
+      <input type="text" id="username" name="username" placeholder=" " autocomplete="off" required>
+      <label for="username">Create username</label>
+      <small id="username-requirements" class="requirement-text">
+        3–20 characters, letters/numbers/underscores only
+      </small>
+    </div>
+
+    <div class="input-group">
+      <small id="email-required" class="field-required-text">
+        * Field required
+      </small>
+      <small id="email-existing" class="field-required-text">
+        * Email already in use
+      </small>
+      <input type="text" id="email" name="email" placeholder=" " autocomplete="off" required>
+      <label for="email">Email</label>
+      <small id="email-requirements" class="requirement-text">
+        Must be a valid email address
+      </small>
+    </div>
+
+    <div class="input-group">
+      <small id="password-required" class="field-required-text">
+        * Field required
+      </small>
+      <input type="password" id="password" name="password" placeholder=" " autocomplete="off" required>
+      <label for="password">Password</label>
+      <small id="password-requirements" class="requirement-text">
+        &lt;8 characters, 1 uppercase, 1 lowercase, 1 number
+      </small>
+    </div>
+
+    <div class="input-group">
+      <small id="confirm-password-required" class="field-required-text">
+        * Field required
+      </small>
+      <input type="password" id="confirm" placeholder=" " autocomplete="off" required>
+      <label for="confirm">Confirm Password</label>
+      <small id="confirm-password-requirements" class="requirement-text">
+        Passwords must match
+      </small>
+    </div>
+
+    <button type="submit">Sign Up</button>
+  </form>
+</div>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Style Pill</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      min-height: 200vh;
+    }
+
+    .footer {
+      background: #f5f5f5;
+      padding: 0;
+    }
+
+    .video-container {
+      width: 100%;
+      background: #000;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .video-container video {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    .Row1 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+      padding: 60px 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .box h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .box p {
+      font-size: 13px;
+      margin: 10px 0;
+      color: #666;
+      cursor: pointer;
+    }
+
+    .box p:hover {
+      color: #000;
+    }
+
+    .email-container {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .email-input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ddd;
+      font-size: 13px;
+    }
+
+    .submit-btn {
+      padding: 12px 24px;
+      background: #000;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .submit-btn:hover {
+      background: #333;
+    }
+
+    .small-text {
+      font-size: 11px;
+      color: #888;
+      line-height: 1.6;
+    }
+
+    .small-text a {
+      color: #000;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .Row2 {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 20px 40px;
+      border-top: 1px solid #ddd;
+      max-width: 1400px;
+      margin: 0 auto;
+      font-size: 12px;
+    }
+
+    .Row2 .box {
+      color: #666;
+      cursor: pointer;
+    }
+
+    .Row2 .box:hover {
+      color: #000;
+    }
+
+    .copyright {
+      text-align: center;
+      padding: 30px 40px;
+      font-size: 12px;
+      color: #888;
+      border-top: 1px solid #ddd;
+    }
+
+    @media (max-width: 768px) {
+      .Row1, .Row2 {
+        padding: 40px 20px;
+      }
+
+      .email-container {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <section class="footer">
+    <!-- ✅ Video section -->
+    <div class="video-container">
+      <video
+        id="footerVideo"
+        autoplay
+        muted
+        playsinline
+        preload="auto"
+        webkit-playsinline
+      >
+        <source src="/assets/images/logos/bg.mp4" type="video/mp4" />
+        Your browser doesn't support the video tag.
+      </video>
+    </div>
+
+    <!-- ✅ Row 1 -->
+    <div class="Row1">
+      <div class="box">
+        <h3>CUSTOMER SERVICE</h3>
+        <p>My Account</p>
+        <p>Live Chat</p>
+        <p>Customer Support</p>
+        <p>Shipping & Delivery</p>
+        <p>Returns & Exchange Programs</p>
+        <p>Check Order Status</p>
+        <p>Gift Cards</p>
+      </div>
+
+      <div class="box">
+        <h3>COMPANY</h3>
+        <p>About Us</p>
+        <p>Careers</p>
+        <p>World of SP</p>
+        <p>Protecting Our Brands</p>
+        <p>Global Citizenship Program</p>
+        <p>Satisfaction Guarantee</p>
+      </div>
+
+      <div class="box">
+        <h3>MORE FROM SP</h3>
+        <p>Personalize Your Experience</p>
+        <p>Find a Store</p>
+        <p>Download the App</p>
+        <p>Mobile Marketing</p>
+        <p>Book and Appointment</p>
+        <p>Site Marketing</p>
+      </div>
+
+      <div class="box">
+        <h3>SIGN UP FOR EMAILS</h3>
+        <form class="email-container">
+          <input type="email" class="email-input" placeholder="Enter Email Address" required />
+          <button type="submit" class="submit-btn">Submit</button>
+        </form>
+        <p class="small-text">
+          <a>Click here</a> to read Style Pill's privacy notice. Or <a>contact us</a>.
+        </p>
+      </div>
+    </div>
+
+    <!-- ✅ Row 2 -->
+    <div class="Row2">
+      <div class="box">Company Information</div>
+      <div class="box">Terms of Use</div>
+      <div class="box">Privacy Notice</div>
+      <div class="box">Massachusetts Privacy Notice at Collection</div>
+      <div class="box">UK and Massachusetts Transparency Act</div>
+      <div class="box">Do Not Sell My Personal Information</div>
+    </div>
+
+    <!-- ✅ Copyright -->
+    <div class="copyright">
+      © Copyright 2025 Style Pill Media LLC
+    </div>
+  </section>
+
+  <script>
+    const video = document.getElementById("footerVideo");
+    let hasPlayed = false;
+
+    // Load the video (ensures Chrome initializes it properly)
+    video.load();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            console.log("Footer video in view - playing");
+            video.currentTime = 0;
+            video.play().catch((err) => console.warn("Autoplay blocked:", err));
+            hasPlayed = true;
+          } else if (hasPlayed) {
+            console.log("Footer video out of view - pausing and freezing last frame");
+            video.pause();
+            video.currentTime = video.duration;
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(video);
+
+    // Freeze on the last frame when it ends
+    video.addEventListener("ended", () => {
+      video.pause();
+      video.currentTime = video.duration;
+    });
+
+    // Debugging logs
+    video.addEventListener("play", () => console.log("Video playing"));
+    video.addEventListener("pause", () => console.log("Video paused"));
+    video.addEventListener("error", (e) =>
+      console.error("Video error:", video.error ? video.error.code : e)
+    );
+  </script>
+</body>
+</html>

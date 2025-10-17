@@ -1,0 +1,171 @@
+body {
+    margin: 0;
+    padding-top: 50px;
+}
+
+.account-settings {
+    display: flex;
+    margin-top: 50px;
+    width: 100%;
+    gap: 20px;
+    font-family: 'Inter', sans-serif;
+}
+
+.setting-options {
+    margin-bottom: 10px;
+    margin-left: 200px;
+    width: 300px;
+}
+
+.setting-options-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.setting-options-header img {
+    height: 60px;
+}
+
+.username h2 {
+    margin-left: 10px;
+    margin-bottom: 0px;
+    margin-top: 0px;
+    font-size: 18px;
+    font-weight: 600;
+    color: black;
+}
+
+.username p {
+    margin-top: 2px;
+    margin-bottom: 0px;
+    font-size: 14px;
+    color: black;
+}
+
+.setting-options h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #888;
+    margin: 20px 0 10px;
+}
+
+.setting-options p {
+    margin-left: 10px;
+}
+
+.setting-options-container {
+    gap: 20px;
+    padding-left: 10px;
+    border-bottom: 1px solid rgb(190, 178, 178);
+}
+
+.option-container {
+    display: flex;
+    align-items: center;
+    padding-left: 2px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.option-container:hover {
+    background: #f0f4ff;
+    color: #0073e6;
+}
+
+.option-container:active {
+    background: #cce0ff; /* brighter blue */
+    color: #004a99;      /* slightly deeper text for contrast */
+}
+
+.option-container.active {
+    background: #e4ebfeff; /* slightly stronger highlight */
+    color: #0073e6;      /* darker blue text */
+}
+
+.option-container img {
+    height: 25px;
+    opacity: 0.8;
+}
+
+.setting-details {
+    flex: 1;
+    padding: 30px;
+}
+
+.setting-container {
+    margin-top: 30px;
+}
+
+.setting-container h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.setting-container input {
+  width: 400px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.setting-container p {
+    margin-top: 8px;
+    margin-left: 5px;
+    font-size: 12px;
+}
+
+.setting-container input:focus {
+  border-color: #0073e6;
+  outline: none;
+}
+
+.setting-container button {
+    background: #4a90e2;
+    border: none;
+    padding: 10px 18px;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    align-self: flex-start; /* keeps it aligned nicely */
+}
+
+.setting-container button:hover {
+    background: #3b7dc9;
+}
+
+.setting-container button:active {
+    transform: scale(0.97);
+}
+
+.setting-page {
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.setting-page.hidden {
+    display: none;
+}
+
+.theme {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #f8f8f8;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.theme:hover {
+  border-color: #888;
+  background-color: #f1f1f1;
+}
+
+.theme:focus {
+  outline: none;
+  border-color: #888;
+}

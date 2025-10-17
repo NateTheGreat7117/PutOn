@@ -1,0 +1,83 @@
+/* Fonts */
+@font-face {
+  font-family: 'Paris Forbel';
+  src: url('/assets/fonts/paris_forbel/Paris Forbel TTF.ttf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Header */
+header {
+  background: rgba(0, 43, 13, 0.45); /* semi-transparent for glass effect */
+  color: rgb(255, 255, 255);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 50px;
+  padding-left: 0px;
+  padding-right: 0px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.411);
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
+  border-radius: 0 0 18px 18px;
+}
+
+header #logo {
+  font-family: 'Paris Forbel';
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  padding-left: 55px;
+  cursor: pointer;
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 20px;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: white;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+.user-info {
+  display: flex;
+  margin-right: 15px;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info img {
+  height: 21px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  filter: invert(1); /* Make icons white */
+  vertical-align: middle;
+}
+
+.user-info img:hover {
+  transform: scale(1.3);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+#black-user-button:hover {
+  transform: scale(1);
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
