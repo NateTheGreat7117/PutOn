@@ -1,0 +1,357 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+.explore-header {
+    display: flex;
+    position: fixed;
+    margin-top: 63px;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 55px;
+}
+
+.pages {
+    display: flex;
+    margin-left: 250px;
+    flex: 1;
+    align-items: center;
+}
+
+.explore-searchbar {
+    position: relative;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.explore-searchbar input {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 12px;
+  padding-left: 36px;
+  font-size: 14px;
+  color: #333;
+  outline: none;
+  width: 350px;
+  height: 28px;
+}
+
+.explore-searchbar input::placeholder {
+    color: #777;
+    font-size: 15px;
+}
+
+.explore-search-button {
+  position: absolute;
+  top: 50%;
+  left: 12px;               /* inside the padding */
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  pointer-events: none;     /* so clicks go to the input */
+}
+
+.page {
+    font-size: 24px;
+    margin-right: 30px;
+    color: rgb(91, 89, 89);
+    cursor: pointer;
+    position: relative;
+}
+
+.underline {
+    position: absolute;
+    bottom: 10px;
+    height: 1.03px;
+    background-color: rgb(91, 89, 89);
+    transition: all 0.3s ease;
+}
+
+.filter-side-bar {
+    padding-top: 90px;
+    margin-left: 10px;
+    margin-bottom: 0px;
+    padding-right: 20px;
+    position: fixed;
+    border-right: 1px solid #ccc;
+    height: 100%;
+    transition: transform 0.3s ease;
+}
+
+.filter-side-bar.collapsed {
+    transform: translateX(-100%);
+    border: none;
+}
+
+.filter-toggle-btn:hover {
+    background: #555;
+}
+
+.filter-side-bar:not(.collapsed) ~ .filter-toggle-btn {
+    left: 145px; /* Adjust based on your sidebar width */
+    border-radius: 8px;
+}
+
+.filter-toggle-btn {
+    position: fixed;
+    left: 0;
+    top: 11.5%;
+    transform: translateY(-50%);
+    background: #333;
+    color: white;
+    border: none;
+    padding: 12px 8px;
+    cursor: pointer;
+    z-index: 1001;
+    border-radius: 0 8px 8px 0;
+    transition: left 0.3s ease;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.filter-side-bar h2, p, h4 {
+    margin: 0;
+}
+
+.filter-side-bar h4 {
+    margin-top: 15px;
+    margin-left: 1px;
+}
+
+.filter-side-bar h2 {
+    font-size: 32px;
+    margin-bottom: 22px;
+    text-align: center;
+}
+
+.choices p {
+    margin-left: 8px;
+}
+
+.choice {
+    margin-top: 14px;
+    margin-left: 14px;
+    display: flex;
+}
+
+.grid {
+    column-count: 4;
+    column-gap: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
+    margin-left: 200px;
+    margin-top: 50px;
+
+    position: fixed;
+    top: 70px;         /* adjust to sit below header */
+    bottom: 0;         /* anchor to bottom */
+    right: 0;
+    overflow-y: auto;  /* enables independent scrolling */
+}
+
+.filter-side-bar.collapsed ~ .grid {
+    column-count: 5;
+    margin-left: 0px;
+}
+
+.grid img {
+    width: 100%;
+    display: block;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+@media (max-width: 1200px) { .grid { column-count: 3; } }
+@media (max-width: 800px)  { .grid { column-count: 2; } }
+@media (max-width: 500px)  { .grid { column-count: 1; } }
+
+.footer {
+    margin-left: 202px;
+}
+
+.image-info-screen {
+    display: none;
+    position: fixed;
+    left: 250px;
+    top: 150px;
+    width: 100%;
+    height: 75vh;
+}
+
+.back-button {
+    height: 50px;
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.image-info-screen .image-half {
+    display: flex;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    justify-content: left;
+}
+
+.image-reel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.2s ease-out;
+}
+.image-reel .reel-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+}
+.image-reel .reel-image.active {
+    opacity: 1;
+}
+.image-reel .reel-image img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+}
+
+.placeholder-img {
+    display: block;
+    margin-top: 20px;
+    margin-left: 20px;
+    min-width: 60%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.image-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 0 20px;
+    padding-left: 50px;
+    height: 100%;
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.ai-analyzing {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.ai-analyzing .spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #ddd;
+    border-top-color: #333;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.ai-analyzing span {
+    font-size: 14px;
+    color: #666;
+}
+
+.clothing-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.clothing-item {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: fit-content;
+}
+
+.clothing-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.clothing-item h3 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.clothing-item p {
+    margin: 6px 0;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.clothing-item .brand {
+    color: #000;
+    font-weight: 500;
+}
+
+.clothing-item .price {
+    color: #2a7f62;
+    font-weight: 600;
+    font-size: 16px;
+    margin-top: 12px;
+}
+
+.image-info h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 24px 0 16px 0;
+    color: #222;
+    position: sticky;
+    top: 0;
+    background: transparent;
+    padding: 12px 0;
+    z-index: 10;
+}
+
+.image-info h2:first-child {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.info-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
