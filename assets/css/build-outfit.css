@@ -1,0 +1,395 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #1a4d2e 0%, #2d5f3f 100%);
+    min-height: 100vh;
+}
+
+/* Grid background effect */
+.grid-background {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 30px 30px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 70%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 70%, transparent 100%);
+}
+
+.builder-container {
+    position: relative;
+    z-index: 1;
+    padding: 120px 40px 40px 40px;
+    display: flex;
+    gap: 40px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Wardrobe Section (Left) */
+.outfit-section {
+    flex: 0 0 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.outfit-card {
+    background: rgba(217, 217, 217, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    min-height: 500px;
+    position: relative;
+    overflow: hidden;
+}
+
+.outfit-card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(112, 144, 250, 0.1) 0%, transparent 70%);
+    animation: glowPulse 4s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+}
+
+.outfit-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 30px;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    position: relative;
+    z-index: 1;
+}
+
+.outfit-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    position: relative;
+    z-index: 1;
+}
+
+.outfit-slot {
+    background: rgba(0, 0, 0, 0.2);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    padding: 20px;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.wardrobe-slot:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.02);
+}
+
+.wardrobe-slot.has-item {
+    border-style: solid;
+    border-color: rgba(112, 144, 250, 0.8);
+    background: rgba(112, 144, 250, 0.1);
+}
+
+.slot-label {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.slot-placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.slot-item {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+/* Collection Sections (Right) */
+.collections-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.collection-card {
+    background: rgba(217, 217, 217, 0.12);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 25px;
+    transition: all 0.4s ease;
+    position: relative;
+}
+
+.collection-card:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.collection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.collection-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+}
+
+.category-filter {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background: #f7931e;
+    border-color: #ffb662;
+    transform: scale(1.05);
+}
+
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.items-grid.loading::after {
+    content: "Loading your pieces...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+}
+
+.items-grid:empty::after {
+    content: "No items yet. Add items from the Explore page!";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    text-align: center;
+    padding: 20px;
+}
+
+.item-card {
+    background: rgba(217, 217, 217, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(6px);
+    border-radius: 15px;
+    padding: 15px;
+    cursor: grab;
+    transition: all 0.4s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+    position: relative;
+    overflow: hidden;
+}
+
+.item-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent, rgba(112, 144, 250, 0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.item-card:hover {
+    border-color: #fff;
+    transform: scale(1.08) rotate(1deg);
+    box-shadow: 12px 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.item-card:hover::before {
+    opacity: 1;
+}
+
+.item-card:active {
+    cursor: grabbing;
+    transform: scale(0.95) rotate(-1deg);
+}
+
+.item-card img {
+    max-width: 100%;
+    max-height: 120px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.item-name {
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+/* Upload button with 80s style */
+.upload-btn {
+    padding: 12px 24px;
+    background: #000;
+    color: #fff;
+    border: 4px solid #fff;
+    border-radius: 0;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 6px 6px 0 #f7931e;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.upload-btn:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 9px 9px 0 #f7931e;
+}
+
+.upload-btn:active {
+    transform: translate(0, 0);
+    box-shadow: 3px 3px 0 #f7931e;
+}
+
+/* Corner PNG decoration for Put-Ons section */
+.corner-decoration {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 120px;
+    height: 120px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.corner-decoration img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Drag and drop styles */
+.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.drag-over {
+    background: rgba(112, 144, 250, 0.3);
+    border-color: rgba(112, 144, 250, 1);
+    transform: scale(1.05);
+}
+
+@media (max-width: 1024px) {
+    .builder-container {
+    flex-direction: column;
+    }
+    
+    .outfit-section {
+    flex: 1;
+    width: 100%;
+    }
+}
+
+.delete-item-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: rgba(244, 67, 54, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 10;
+    padding: 0;
+}
+
+.item-card:hover .delete-item-btn {
+    opacity: 1;
+}
+
+.delete-item-btn:hover {
+    background: rgba(211, 47, 47, 1);
+    transform: scale(1.1);
+}
+
+.delete-item-btn:active {
+    transform: scale(0.95);
+}

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>explore</title>
+  <link rel="stylesheet" href="/assets/css/explore.css">
+</head>
+
+<body>
+  <div id="header-placeholder"></div>
+
+  <div class="overlay"></div>
+
+  <div class="explore-header">
+    <div class="pages">
+      <span class="page">For You</span>
+      <span class="page">Friends</span>
+      <span class="page">Brand of the Day</span>
+      <span class="page">Following</span>
+      <span class="page">Trending</span>
+      <div class="underline"></div>
+    </div>
+
+    <div class="explore-searchbar">
+      <img src="/assets/images/icons/search.png" class="explore-search-button">
+      <input type="text" class="explore-searchbar-input" placeholder="search">
+    </div>
+  </div>
+
+  <div class="filter-side-bar collapsed">
+    <h2>Filters</h2>
+
+    <h4>Gender</h4>
+    <div class="choices">
+      <div class="choice"><input type="checkbox"><p>Men</p></div>
+      <div class="choice"><input type="checkbox"><p>Women</p></div>
+    </div>
+
+    <h4>Insert classifier here</h4>
+    <div class="choices">
+      <div class="choice"><input type="checkbox"><p>Outfits</p></div>
+      <div class="choice"><input type="checkbox"><p>Clothing pieces</p></div>
+    </div>
+
+    <h4>Style</h4>
+    <div class="choices">
+      <div class="choice"><input type="checkbox"><p>Streetwear</p></div>
+      <div class="choice"><input type="checkbox"><p>Date night</p></div>
+      <div class="choice"><input type="checkbox"><p>Beach</p></div>
+      <div class="choice"><input type="checkbox"><p>Stockholm</p></div>
+      <div class="choice"><input type="checkbox"><p>Old money</p></div>
+      <div class="choice"><input type="checkbox"><p>Gymwear</p></div>
+    </div>
+
+    <h4>Season</h4>
+    <div class="choices">
+      <div class="choice"><input type="checkbox"><p>Winter</p></div>
+      <div class="choice"><input type="checkbox"><p>Spring</p></div>
+      <div class="choice"><input type="checkbox"><p>Summer</p></div>
+      <div class="choice"><input type="checkbox"><p>Fall</p></div>
+    </div>
+  </div>
+
+  <button class="filter-toggle-btn" id="filterToggle">→</button>
+
+  <div class="grid" id="gallery"></div>
+
+  <div class="image-info-screen">
+    <div class="image-half">
+      <img class="back-button" src="/assets/images/icons/back.png">
+      <img class="placeholder-img" src="/assets/images/icons/placeholder.jpg">
+    </div>
+    <div class="image-info" id="clothingDetails">
+      <!-- AI-detected clothing details will be inserted here -->
+    </div>
+  </div>
+
+  <div id="create-account-page-placeholder"></div>
+
+  <script type="module" src="/assets/js/pages/explore-page.js"></script>
+  <script src="/assets/js/components/scroll-images.js"></script>
+  <script type="module" src="/assets/js/pages/page-defaults.js"></script>
+  <script type="module" src="/assets/js/components/load-images.js"></script>
+  <script type="module" src="/assets/js/components/load-user.js"></script>
+</body>
+</html>

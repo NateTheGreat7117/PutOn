@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build Outfit - PutOn</title>
+  <link rel="stylesheet" href="/assets/css/build-outfit.css">
+</head>
+<body>
+  <div id="header-placeholder"></div>
+  
+  <div class="grid-background"></div>
+
+  <div class="builder-container">
+    <!-- Wardrobe Section (Left) -->
+    <div class="outfit-section">
+      <div class="outfit-card">
+        <h2 class="outfit-title">New Outfit</h2>
+        <div class="outfit-slots">
+          <div class="outfit-slot" data-slot="outerwear">
+            <span class="slot-label">Outerwear</span>
+            <span class="slot-placeholder">Drop outerwear here</span>
+          </div>
+          <div class="outfit-slot" data-slot="shirt">
+            <span class="slot-label">Shirt</span>
+            <span class="slot-placeholder">Drop shirt here</span>
+          </div>
+          <div class="outfit-slot" data-slot="pants">
+            <span class="slot-label">Pants</span>
+            <span class="slot-placeholder">Drop pants here</span>
+          </div>
+          <div class="outfit-slot" data-slot="shoes">
+            <span class="slot-label">Shoes</span>
+            <span class="slot-placeholder">Drop shoes here</span>
+          </div>
+          <div class="outfit-slot" data-slot="accessories">
+            <span class="slot-label">Accessories</span>
+            <span class="slot-placeholder">Drop accessories here</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Collections Section (Right) -->
+    <div class="collections-section">
+      <!-- Your Pieces -->
+      <div class="collection-card">
+        <div class="collection-header">
+          <h2 class="collection-title">Your Pieces</h2>
+          <button class="upload-btn" onclick="uploadPiece()">+ Upload</button>
+        </div>
+        <div class="category-filter">
+          <button class="filter-btn active" data-category="all">All</button>
+          <button class="filter-btn" data-category="outerwear">Outerwear</button>
+          <button class="filter-btn" data-category="shirt">Shirts</button>
+          <button class="filter-btn" data-category="pants">Pants</button>
+          <button class="filter-btn" data-category="shoes">Shoes</button>
+          <button class="filter-btn" data-category="accessories">Accessories</button>
+        </div>
+        <div class="items-grid" id="yourPieces">
+          <!-- Sample items - replace with dynamic content -->
+          <div class="item-card" draggable="true" data-category="shirt" data-item="blue-tshirt">
+            <img src="/assets/images/outfits/website/aiden.png" alt="Blue T-Shirt">
+            <span class="item-name">Blue Tee</span>
+          </div>
+          <div class="item-card" draggable="true" data-category="pants" data-item="black-pants">
+            <img src="/assets/images/outfits/website/johnny3.png" alt="Black Pants">
+            <span class="item-name">Black Pants</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Put-Ons (Suggestions) -->
+      <div class="collection-card">
+        <!-- Corner decoration PNG -->
+        <div class="corner-decoration">
+          <img src="/assets/images/logos/putonfunky.png" alt="Badge">
+          <!-- REPLACE: Change the src above to your PNG path -->
+        </div>
+        
+        <div class="collection-header">
+          <h2 class="collection-title">Put-Ons</h2>
+        </div>
+        <div class="category-filter">
+          <button class="filter-btn active" data-category="all">All</button>
+          <button class="filter-btn" data-category="friends">Friends</button>
+          <button class="filter-btn" data-category="ai">AI Suggested</button>
+        </div>
+        <div class="items-grid" id="putOns">
+          <!-- AI and friend suggestions will appear here -->
+          <div class="item-card" draggable="true" data-category="shirt" data-item="suggested-shirt">
+            <img src="/assets/images/outfits/website/aiden.png" alt="Suggested Item">
+            <span class="item-name">AI Pick</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="create-account-page-placeholder"></div>
+
+  <script type="module" src="/assets/js/pages/page-defaults.js"></script>
+  
+  <script src="/assets/js/pages/build-outfit.js"></script>
+</body>
+</html>
