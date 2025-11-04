@@ -38,4 +38,40 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  const addPost = document.querySelector(".add-post");
+
+  if (addPost) {
+    addPost.addEventListener("click", async () => {
+      window.href = "/pages/new-post.html";
+    })
+  }
+
+  const saveButton = document.querySelector(".save-button");
+  if (saveButton) {
+    saveButton.addEventListener("click", async () => {
+      const name = document.getElementById("display-name-input").value.trim();
+      const username = document.getElementById("display-username-input").value.trim();
+      try {
+        const res = await fetch("/update-user", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ name, username }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          document.querySelector(".profile-name").textContent = name;
+          document.querySelector(".profile-username").textContent = username;
+        } else {
+          // Failed
+        }
+      } catch (err) {
+        console.error("Error updating user:", err);
+        // Server error
+      }
+    });
+  }
 });

@@ -53,7 +53,8 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true , limit: '10mb'}));
 app.use(express.json());
 app.use(
   session({
@@ -247,23 +248,55 @@ let db;
     `);
 
     await db.exec(`
-    CREATE TABLE IF NOT EXISTS putons (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER,
-      name TEXT,
-      type TEXT,
-      brand TEXT,
-      color TEXT,
-      size TEXT,
-      price TEXT,
-      image TEXT,
-      category TEXT,
-      notes TEXT,
-      source_image TEXT,
-      added_at TEXT
-    );
+      CREATE TABLE IF NOT EXISTS putons (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        name TEXT,
+        type TEXT,
+        brand TEXT,
+        color TEXT,
+        size TEXT,
+        price TEXT,
+        image TEXT,
+        category TEXT,
+        notes TEXT,
+        source_image TEXT,
+        added_at TEXT
+      );
     `);
 
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS wardrobe (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        name TEXT,
+        category TEXT,
+        image TEXT,
+        addedDate TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+    `);
+
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS outfits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        name TEXT NOT NULL,
+        description TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+    `);
+
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS outfit_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        outfit_id INTEGER,
+        item_id INTEGER,
+        FOREIGN KEY (outfit_id) REFERENCES outfits(id) ON DELETE CASCADE,
+        FOREIGN KEY (item_id) REFERENCES wardrobe(id)
+      );
+    `);
 
     console.log('✅ Database initialized');
 
@@ -586,7 +619,7 @@ app.get("/check-login", async (req, res) => {
 
 
     // Retrieve user info from database
-    const user = await db.get("SELECT username, email FROM users WHERE id = ?", [req.session.userId]);
+    const user = await db.get("SELECT name, username, email FROM users WHERE id = ?", [req.session.userId]);
 
 
     if (!user) {
@@ -602,6 +635,7 @@ app.get("/check-login", async (req, res) => {
       user: {
         username: user.username,
         email: user.email,
+        name: user.name
       },
     });
   } catch (err) {
@@ -634,6 +668,31 @@ function requireLogin(req, res, next) {
   }
   next();
 }
+
+app.put("/update-user", async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ success: false, message: "Not logged in" });
+    }
+
+    const { name, username } = req.body;
+
+    if (!name || !username) {
+      return res.status(400).json({ success: false, message: "Missing fields" });
+    }
+
+    await db.run(
+      "UPDATE users SET name = ?, username = ? WHERE id = ?",
+      [name, username, req.session.userId]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error updating user:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 
 // ============================================
 // Put On Routes
@@ -759,6 +818,102 @@ app.delete("/api/wishlist/:id", requireLogin, async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to delete item" });
   }
 });
+
+// ========================================
+// ✅ Wardrobe Routes
+// ========================================
+
+// Add new item
+app.post("/api/wardrobe", requireLogin, async (req, res) => {
+  try {
+    const { name, category, image } = req.body;
+    const userId = req.session.userId;
+
+    if (!name || !image || !category) {
+      return res.status(400).json({ success: false, message: "Missing name, category, or image" });
+    }
+
+    const addedDate = new Date().toISOString();
+
+    const result = await db.run(
+      `INSERT INTO wardrobe (user_id, name, category, image, addedDate)
+       VALUES (?, ?, ?, ?, ?)`,
+      [userId, name, category, image, addedDate]
+    );
+
+    res.json({
+      success: true,
+      message: "Item added to wardrobe!",
+      item: { id: result.lastID, name, category, image, addedDate }
+    });
+  } catch (err) {
+    console.error("❌ Error adding wardrobe item:", err);
+    res.status(500).json({ success: false, message: "Failed to add wardrobe item" });
+  }
+});
+
+// Get all wardrobe items for logged-in user
+app.get("/api/wardrobe", requireLogin, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const items = await db.all(
+      "SELECT * FROM wardrobe WHERE user_id = ? ORDER BY addedDate DESC",
+      [userId]
+    );
+    res.json({ success: true, items });
+  } catch (err) {
+    console.error("❌ Error fetching wardrobe:", err);
+    res.status(500).json({ success: false, message: "Failed to load wardrobe items" });
+  }
+});
+
+// Delete wardrobe item
+app.delete("/api/wardrobe/:id", requireLogin, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const itemId = req.params.id;
+    const result = await db.run(
+      "DELETE FROM wardrobe WHERE id = ? AND user_id = ?",
+      [itemId, userId]
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ success: false, message: "Item not found" });
+    }
+
+    res.json({ success: true, message: "Item deleted" });
+  } catch (err) {
+    console.error("❌ Error deleting wardrobe item:", err);
+    res.status(500).json({ success: false, message: "Failed to delete wardrobe item" });
+  }
+});
+
+// Get all outfits
+app.get('/api/outfits', requireLogin, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const outfits = await db.all(
+      'SELECT * FROM outfits WHERE user_id = ? ORDER BY created_at DESC',
+      [userId]
+    );
+    res.json({ success: true, outfits });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+});
+
+// Delete an outfit
+app.delete('/api/outfits/:id', requireLogin, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const outfitId = req.params.id;
+    await db.run('DELETE FROM outfits WHERE id = ? AND user_id = ?', [outfitId, userId]);
+    res.json({ success: true });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+});
+
 
 
 

@@ -49,50 +49,36 @@ function initEventListeners() {
 // Load items from storage
 async function loadItems() {
   try {
-    const keys = await window.storage.list('wardrobe:');
-    if (keys && keys.keys) {
-      const loadedItems = await Promise.all(
-        keys.keys.map(async (key) => {
-          try {
-            const result = await window.storage.get(key);
-            return result ? JSON.parse(result.value) : null;
-          } catch (error) {
-            console.error(`Error loading item ${key}:`, error);
-            return null;
-          }
-        })
-      );
-      items = loadedItems.filter(item => item !== null);
-      renderCurrentView();
-    }
-  } catch (error) {
-    console.log('No items found yet');
-    items = [];
+    const res = await fetch('http://localhost:3000/api/wardrobe', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    items = data.items || [];
     renderCurrentView();
+    console.log('✅ Loaded wardrobe items from database:', items.length);
+  } catch (err) {
+    console.error('❌ Error loading wardrobe items:', err);
   }
 }
 
-// Load outfits from storage
+// Load outfits from the database
 async function loadOutfits() {
   try {
-    const keys = await window.storage.list('outfit:');
-    if (keys && keys.keys) {
-      const loadedOutfits = await Promise.all(
-        keys.keys.map(async (key) => {
-          try {
-            const result = await window.storage.get(key);
-            return result ? JSON.parse(result.value) : null;
-          } catch (error) {
-            console.error(`Error loading outfit ${key}:`, error);
-            return null;
-          }
-        })
-      );
-      outfits = loadedOutfits.filter(outfit => outfit !== null);
-      renderCurrentView();
-    }
+    const res = await fetch('http://localhost:3000/api/outfits', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    outfits = data.outfits || [];
+    renderCurrentView();
+    console.log('✅ Loaded outfits from database:', outfits.length);
   } catch (error) {
-    console.log('No outfits found yet');
+    console.error('❌ Error loading outfits:', error);
     outfits = [];
     renderCurrentView();
   }
@@ -310,56 +296,80 @@ function showImagePreview(src) {
 async function addItem() {
   const itemName = document.getElementById('item-name-input').value.trim();
   const category = document.getElementById('category-input').value;
-  
+
   if (!itemName || !imagePreview) {
     alert('Please provide an item name and image');
     return;
   }
-  
+
   const newItem = {
-    id: Date.now().toString(),
     name: itemName,
-    image: imagePreview,
     category: category,
-    addedDate: new Date().toISOString()
+    image: imagePreview
   };
-  
+
   try {
-    await window.storage.set(`wardrobe:${newItem.id}`, JSON.stringify(newItem));
-    items.push(newItem);
+    const res = await fetch('http://localhost:3000/api/wardrobe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(newItem)
+    });
+
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    items.push(data.item);
     renderCurrentView();
     closeModal();
+    console.log('✅ Saved item to database:', data.item);
   } catch (error) {
-    console.error('Error saving item:', error);
-    alert('Failed to save item');
+    console.error('❌ Error saving item:', error);
+    alert('Failed to save item.');
   }
 }
 
 // Delete item
 async function deleteItem(id) {
   if (!confirm('Are you sure you want to delete this item?')) return;
-  
+
   try {
-    await window.storage.delete(`wardrobe:${id}`);
+    const res = await fetch(`http://localhost:3000/api/wardrobe/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
     items = items.filter(item => item.id !== id);
     renderCurrentView();
+    console.log('🗑️ Deleted item from database:', id);
   } catch (error) {
-    console.error('Error deleting item:', error);
-    alert('Failed to delete item');
+    console.error('❌ Error deleting item:', error);
+    alert('Failed to delete item.');
   }
 }
 
 // Delete outfit
+// ========================================
 async function deleteOutfit(id) {
   if (!confirm('Are you sure you want to delete this outfit?')) return;
-  
+
   try {
-    await window.storage.delete(`outfit:${id}`);
+    const res = await fetch(`http://localhost:3000/api/outfits/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
     outfits = outfits.filter(outfit => outfit.id !== id);
     renderCurrentView();
   } catch (error) {
-    console.error('Error deleting outfit:', error);
-    alert('Failed to delete outfit');
+    console.error('❌ Error deleting outfit:', error);
+    alert('Failed to delete outfit.');
   }
 }
 

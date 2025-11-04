@@ -29,10 +29,19 @@ document.addEventListener("base:ready", async() => {
                 userButton.style.transform = 'scale(1.3)';
                 userButton.style.paddingTop = '0';
                 userButton.style.paddingBottom = '0';
-            })
+            });
             userButton.addEventListener("mouseleave", () => {
                 userButton.style.transform = 'scale(1)';
-            })
+            });
+            try {
+                document.querySelector(".profile-name").textContent = data.user.name;
+                document.getElementById("display-name-input").value = data.user.name;
+                document.querySelector(".profile-username").textContent = "@"+data.user.username;
+                document.getElementById("display-username-input").value = data.user.username;
+                document.getElementById("display-email-input").value = data.user.email;
+            } catch {
+                // Nothing
+            }
         } else {
             console.log("Don't welcome back");
         }
