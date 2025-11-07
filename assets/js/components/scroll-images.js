@@ -61,39 +61,17 @@ document.addEventListener("DOMContentLoaded", () => {
             isSaved = false
         } = interactionData;
         
-        // Create tags HTML
-        let tagsHTML = '';
-        if (Gender && Gender.length > 0) {
-            tagsHTML += Gender.map(tag => `<span class="post-tag-overlay gender">${tag}</span>`).join('');
-        }
-        if (Style && Style.length > 0) {
-            tagsHTML += Style.map(tag => `<span class="post-tag-overlay style">${tag}</span>`).join('');
-        }
-        if (Season && Season.length > 0) {
-            tagsHTML += Season.map(tag => `<span class="post-tag-overlay season">${tag}</span>`).join('');
-        }
-        
         return `
-            <div class="post-info-overlay" id="postInfoOverlay">
-                <button class="post-info-toggle" onclick="togglePostInfo()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
-                
+            <div class="post-info-overlay" id="postInfoOverlay">                
                 <div class="post-header-overlay">
-                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=2a7f62&color=fff" 
-                         alt="${userName}" 
-                         class="post-author-avatar-overlay">
-                    <div class="post-author-info-overlay">
+                    <p class="post-date-overlay">${formatPostDate(timestamp)}</p>
+                    <div class="post-author-wrapper">
+                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=2a7f62&color=fff" 
+                            alt="${userName}" 
+                            class="post-author-avatar-overlay">
                         <h3 class="post-author-name-overlay">${userName}</h3>
-                        <p class="post-date-overlay">${formatPostDate(timestamp)}</p>
                     </div>
                 </div>
-                
-                ${caption ? `<p class="post-caption-overlay">${caption}</p>` : ''}
-                
-                ${tagsHTML ? `<div class="post-tags-overlay">${tagsHTML}</div>` : ''}
                 
                 <div class="post-interactions-overlay">
                     <button class="interaction-btn-overlay ${isLiked ? 'liked' : ''}" 

@@ -153,12 +153,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    const addPost = document.querySelector(".add-post");
-    if (addPost) {
-        addPost.addEventListener("click", async () => {
+    const postsGrid = document.getElementById("postsGrid");
+    postsGrid.addEventListener("click", (e) => {
+        if (e.target.closest(".add-post")) {
             window.location.href = "/pages/new-post.html";
-        });
-    }
+        }
+    });
 
     const saveButton = document.querySelector(".save-button");
     if (saveButton) {
