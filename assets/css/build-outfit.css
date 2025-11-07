@@ -217,18 +217,6 @@ body {
     font-size: 14px;
 }
 
-.items-grid:empty::after {
-    content: "No items yet. Add items from the Explore page!";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 14px;
-    text-align: center;
-    padding: 20px;
-}
-
 .item-card {
     background: rgba(217, 217, 217, 0.2);
     border: 2px solid rgba(255, 255, 255, 0.3);
