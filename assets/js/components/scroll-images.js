@@ -40,13 +40,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Create post info overlay HTML (for left side over image)
     function createPostInfoOverlay(postData, interactionData = {}) {
         const { 
             caption = '', 
             timestamp = '', 
             userId = null,
             userName = 'Anonymous User',
+            userProfilePic = null, // Add this
             Gender = [], 
             Style = [], 
             Season = []
@@ -61,21 +61,31 @@ document.addEventListener("DOMContentLoaded", () => {
             isSaved = false
         } = interactionData;
         
+        // Use custom profile picture or fall back to generated avatar
+        const profilePicSrc = userProfilePic 
+            ? userProfilePic 
+            : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=2a7f62&color=fff`;
+        
         return `
             <div class="post-info-overlay" id="postInfoOverlay">                
                 <div class="post-header-overlay">
                     <p class="post-date-overlay">${formatPostDate(timestamp)}</p>
-                    <div class="post-author-wrapper">
-                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=2a7f62&color=fff" 
+                    <div class="post-author-wrapper" 
+                        onclick="window.location.href='/pages/profile.html?userId=${userId}'" 
+                        style="cursor: pointer; transition: opacity 0.2s ease;"
+                        onmouseover="this.style.opacity='0.8'" 
+                        onmouseout="this.style.opacity='1'">
+                        <img src="${profilePicSrc}" 
                             alt="${userName}" 
-                            class="post-author-avatar-overlay">
+                            class="post-author-avatar-overlay"
+                            onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=2a7f62&color=fff'">
                         <h3 class="post-author-name-overlay">${userName}</h3>
                     </div>
                 </div>
                 
                 <div class="post-interactions-overlay">
                     <button class="interaction-btn-overlay ${isLiked ? 'liked' : ''}" 
-                            onclick="toggleLike('${postData.url}', this)">
+                            onclick="event.stopPropagation(); toggleLike('${postData.url}', this)">
                         <svg viewBox="0 0 24 24">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                         </svg>
@@ -83,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </button>
                     
                     <button class="interaction-btn-overlay ${isReposted ? 'reposted' : ''}" 
-                            onclick="toggleRepost('${postData.url}', this)">
+                            onclick="event.stopPropagation(); toggleRepost('${postData.url}', this)">
                         <svg viewBox="0 0 24 24">
                             <path d="M17 1l4 4-4 4"/>
                             <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
@@ -94,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </button>
                     
                     <button class="interaction-btn-overlay ${isSaved ? 'saved' : ''}" 
-                            onclick="toggleSave('${postData.url}', this)">
+                            onclick="event.stopPropagation(); toggleSave('${postData.url}', this)">
                         <svg viewBox="0 0 24 24">
                             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                         </svg>

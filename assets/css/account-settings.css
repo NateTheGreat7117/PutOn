@@ -39,20 +39,94 @@ body {
 }
 
 .profile-pic-container {
-    position: relative;
-    width: 180px;
-    height: 180px;
-    margin: 0 auto 20px;
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 20px;
 }
 
 .profile-pic {
-    width: 180px;
-    height: 180px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    backdrop-filter: blur(10px);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #2a7f62;
+  transition: opacity 0.3s ease;
+}
+
+.profile-pic-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.profile-pic-container:hover .profile-pic-overlay {
+  opacity: 1;
+}
+
+.upload-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.upload-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.upload-icon span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.remove-pic-btn {
+  margin-top: 10px;
+  padding: 5px 15px;
+  background: rgba(244, 67, 54, 0.8);
+  color: white;
+  border: none;
+  border-radius: 15px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.remove-pic-btn:hover {
+  background: rgba(244, 67, 54, 1);
+}
+
+/* Upload progress indicator */
+.upload-progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #2a7f62;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 .profile-name {
@@ -517,4 +591,56 @@ body {
         width: 40px;
         height: 40px;
     }
+}
+
+/* See More Button Styles */
+.see-more-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(42, 127, 98, 0.1);
+    border: 2px dashed rgba(42, 127, 98, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.see-more-btn:hover {
+    background: rgba(42, 127, 98, 0.2);
+    border-color: rgba(42, 127, 98, 0.5);
+    transform: scale(1.02);
+}
+
+.see-more-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: #2a7f62;
+}
+
+.see-more-content .dots {
+    font-size: 48px;
+    font-weight: bold;
+    line-height: 0.5;
+    letter-spacing: 4px;
+}
+
+.see-more-content .see-more-text {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.see-more-content .post-count {
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+/* Animation for see more button */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.see-more-btn:hover .dots {
+    animation: pulse 1.5s ease-in-out infinite;
 }

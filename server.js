@@ -14,6 +14,36 @@ import multer from 'multer';
 import fs from 'fs/promises';
 
 
+// Configure multer for profile picture uploads
+const profilePicStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadDir = path.join(ROOT, 'assets/images/profile-pictures');
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error);
+    }
+  },
+  filename: (req, file, cb) => {
+    const userId = req.session.userId;
+    const ext = path.extname(file.originalname);
+    cb(null, `user_${userId}_${Date.now()}${ext}`);
+  }
+});
+
+const uploadProfilePic = multer({ 
+  storage: profilePicStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed'));
+    }
+  }
+})
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
@@ -574,6 +604,169 @@ app.post('/api/detect-clothing', async (req, res) => {
 });
 
 // ============================================
+// Profile picture
+// ============================================
+
+// Upload profile picture
+app.post('/api/profile/upload-picture', requireLogin, uploadProfilePic.single('profilePicture'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No image uploaded' });
+    }
+
+    const userId = req.session.userId;
+    const profilePicUrl = `/assets/images/profile-pictures/${req.file.filename}`;
+
+    // Get old profile picture to delete it
+    const user = await db.get('SELECT profile_picture FROM users WHERE id = ?', [userId]);
+    
+    // Update database with new profile picture
+    await db.run(
+      'UPDATE users SET profile_picture = ? WHERE id = ?',
+      [profilePicUrl, userId]
+    );
+
+    // Delete old profile picture if it exists
+    if (user.profile_picture) {
+      const oldPicPath = path.join(ROOT, user.profile_picture);
+      try {
+        await fs.unlink(oldPicPath);
+      } catch (error) {
+        console.log('Could not delete old profile picture:', error);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile picture updated!',
+      profilePicture: profilePicUrl
+    });
+
+  } catch (error) {
+    console.error('❌ Error uploading profile picture:', error);
+    
+    // Clean up uploaded file if there was an error
+    if (req.file) {
+      try {
+        await fs.unlink(req.file.path);
+      } catch (unlinkError) {
+        console.error('Error deleting file:', unlinkError);
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to upload profile picture: ' + error.message 
+    });
+  }
+});
+
+// Delete profile picture
+app.delete('/api/profile/delete-picture', requireLogin, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+
+    // Get current profile picture
+    const user = await db.get('SELECT profile_picture FROM users WHERE id = ?', [userId]);
+    
+    if (user.profile_picture) {
+      // Delete the file
+      const picPath = path.join(ROOT, user.profile_picture);
+      try {
+        await fs.unlink(picPath);
+      } catch (error) {
+        console.log('Could not delete profile picture file:', error);
+      }
+
+      // Remove from database
+      await db.run('UPDATE users SET profile_picture = NULL WHERE id = ?', [userId]);
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile picture removed'
+    });
+
+  } catch (error) {
+    console.error('❌ Error deleting profile picture:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to delete profile picture' 
+    });
+  }
+});
+
+// ============================================
+// User profile
+// ============================================
+
+app.get("/api/profile/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    
+    const user = await db.get(
+      "SELECT id, name, username, email, bio, location, birthday, profile_picture FROM users WHERE id = ?",
+      [userId]
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Get user's posts count
+    const imagesJsonPath = path.join(DATA, 'images.json');
+    let postsCount = 0;
+    try {
+      const fileContent = await fs.readFile(imagesJsonPath, 'utf-8');
+      const imagesData = JSON.parse(fileContent);
+      postsCount = imagesData.filter(img => img.userId === parseInt(userId)).length;
+    } catch (error) {
+      console.log('No posts found');
+    }
+
+    res.json({
+      success: true,
+      profile: {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        bio: user.bio || '',
+        location: user.location || '',
+        profilePicture: user.profile_picture || null,
+        postsCount: postsCount,
+        followersCount: 0,
+        followingCount: 0
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch profile' });
+  }
+});
+
+// Get user's posts by user ID
+app.get("/api/profile/:userId/posts", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const imagesJsonPath = path.join(DATA, 'images.json');
+    
+    const fileContent = await fs.readFile(imagesJsonPath, 'utf-8');
+    const imagesData = JSON.parse(fileContent);
+
+    // Filter posts by user ID
+    const userPosts = imagesData.filter(img => img.userId === parseInt(userId));
+
+    res.json({
+      success: true,
+      posts: userPosts
+    });
+  } catch (error) {
+    console.error('Error fetching user posts:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch posts' });
+  }
+});
+
+// ============================================
 // POST INTERACTION ROUTES
 // ============================================
 
@@ -791,15 +984,15 @@ app.post('/api/posts', requireLogin, upload.single('image'), async (req, res) =>
 
     const { caption, gender, style, season } = req.body;
     
-    // Parse JSON strings back to arrays
     const genderTags = gender ? JSON.parse(gender) : [];
     const styleTags = style ? JSON.parse(style) : [];
     const seasonTags = season ? JSON.parse(season) : [];
 
-    // Create relative path for the image
     const imageUrl = `/assets/images/outfits/user-posts/${req.file.filename}`;
 
-    // Read existing images.json
+    // Get user info including profile picture
+    const user = await db.get('SELECT name, profile_picture FROM users WHERE id = ?', [req.session.userId]);
+
     const imagesJsonPath = path.join(DATA, 'images.json');
     let imagesData = [];
     
@@ -811,7 +1004,6 @@ app.post('/api/posts', requireLogin, upload.single('image'), async (req, res) =>
       imagesData = [];
     }
 
-    // Create new image entry
     const newEntry = {
       url: imageUrl,
       page: ["user-posts"],
@@ -820,13 +1012,13 @@ app.post('/api/posts', requireLogin, upload.single('image'), async (req, res) =>
       Season: seasonTags,
       caption: caption || '',
       userId: req.session.userId,
+      userName: user.name,
+      userProfilePic: user.profile_picture, // Add this!
       timestamp: new Date().toISOString()
     };
 
-    // Add to array
     imagesData.push(newEntry);
 
-    // Write back to file
     await fs.writeFile(imagesJsonPath, JSON.stringify(imagesData, null, 2));
 
     res.json({
@@ -838,7 +1030,6 @@ app.post('/api/posts', requireLogin, upload.single('image'), async (req, res) =>
   } catch (error) {
     console.error('❌ Error creating post:', error);
     
-    // Clean up uploaded file if there was an error
     if (req.file) {
       try {
         await fs.unlink(req.file.path);
@@ -1038,29 +1229,26 @@ app.post("/signup", async (req, res) => {
 // Check login status
 app.get("/check-login", async (req, res) => {
   try {
-    // If no session found, user isn't logged in
     if (!req.session || !req.session.userId) {
       return res.json({ loggedIn: false });
     }
 
-
-    // Retrieve user info from database
-    const user = await db.get("SELECT name, username, email, bio, location, birthday, shirt_size, waist_size, chest_size, " + 
-      "shoe_size, inseam, height, dark_mode, push_notifications, email_updates, private_profile, show_size_recommendations, " + 
-      "preferred_style FROM users WHERE id = ?", [req.session.userId]);
-
+    const user = await db.get(
+      "SELECT name, username, email, bio, location, birthday, shirt_size, waist_size, chest_size, " + 
+      "shoe_size, inseam, height, dark_mode, push_notifications, email_updates, private_profile, " +
+      "show_size_recommendations, preferred_style, profile_picture FROM users WHERE id = ?", 
+      [req.session.userId]
+    );
 
     if (!user) {
-      // User record not found, clear broken session
       req.session.destroy(() => {});
       return res.json({ loggedIn: false });
     }
 
-
-    // ✅ Successfully authenticated
     res.json({
       loggedIn: true,
       user: {
+        id: req.session.userId, // Add this!
         username: user.username,
         email: user.email,
         name: user.name,
@@ -1078,7 +1266,8 @@ app.get("/check-login", async (req, res) => {
         email_updates: user.email_updates,
         private_profile: user.private_profile,
         show_size_recommendations: user.show_size_recommendations,
-        preferred_style: user.preferred_style
+        preferred_style: user.preferred_style,
+        profile_picture: user.profile_picture
       },
     });
   } catch (err) {
