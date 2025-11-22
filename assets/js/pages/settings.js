@@ -1,7 +1,20 @@
 // Show all posts function - Updated to navigate to new page
-window.showAllPosts = function(tab) {
+window.showAllPosts = async function(tab) {
     console.log('showAllPosts called with tab:', tab);
-    window.location.href = `/pages/all-posts.html?tab=${tab}`;
+    
+    try {
+        const response = await fetch('/check-login', { credentials: 'include' });
+        const data = await response.json();
+        
+        if (data.loggedIn && data.user) {
+            window.location.href = `/pages/profile.html?userId=${data.user.id}`;
+        } else {
+            window.location.href = '/pages/homepage.html'; // Redirect to login if not logged in
+        }
+    } catch (error) {
+        console.error('Error getting user ID:', error);
+        window.location.href = '/pages/homepage.html';
+    }
 };
 
 // Profile Picture Upload Handler
@@ -459,6 +472,23 @@ function showNotification(message, type = 'success') {
 document.addEventListener("DOMContentLoaded", () => {
     loadUserProfilePic();
     loadUserPosts();
+
+    const viewProfileBtn = document.querySelector('.view-profile-btn');
+    if (viewProfileBtn) {
+        viewProfileBtn.addEventListener('click', async (e) => {
+            e.preventDefault();         
+            try {
+                const response = await fetch('/check-login', { credentials: 'include' });
+                const data = await response.json();
+                
+                if (data.loggedIn && data.user) {
+                    window.location.href = `/pages/profile.html?userId=${data.user.id}`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    }
     
     // EVENT DELEGATION for posts grid clicks
     const postsGrid = document.getElementById("postsGrid");
@@ -533,17 +563,23 @@ document.addEventListener("DOMContentLoaded", () => {
             const private_profile = String(document.getElementById("private-profile-switch").classList.contains("active"));
             const show_size_recommendations = String(document.getElementById("show-recommendations-switch").classList.contains("active"));
             const preferred_style = document.getElementById("display-preferred-style-input").value.trim();
+            
+            const hide_saved_content = String(document.getElementById("hide-saved-switch").classList.contains("active"));
+            const show_following = String(document.getElementById("show-following-switch").classList.contains("active"));
+            const show_followers = String(document.getElementById("show-followers-switch").classList.contains("active"));
+            const language = document.getElementById("display-language-input").value.trim();
 
             try {
                 const res = await fetch("/update-user", {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         name, username, email, bio, location, birthday, shirt_size, 
                         shoe_size, waist_size, inseam, chest_size, height,
                         dark_mode, push_notifications, email_updates,
-                        private_profile, show_size_recommendations, preferred_style 
+                        private_profile, show_size_recommendations, preferred_style,
+                        hide_saved_content, show_following, show_followers, language
                     }),
                 });
 

@@ -67,20 +67,19 @@ document.addEventListener("DOMContentLoaded", () => {
             : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=2a7f62&color=fff`;
         
         return `
-            <div class="post-info-overlay" id="postInfoOverlay">                
-                <div class="post-header-overlay">
-                    <p class="post-date-overlay">${formatPostDate(timestamp)}</p>
-                    <div class="post-author-wrapper" 
-                        onclick="window.location.href='/pages/profile.html?userId=${userId}'" 
-                        style="cursor: pointer; transition: opacity 0.2s ease;"
-                        onmouseover="this.style.opacity='0.8'" 
-                        onmouseout="this.style.opacity='1'">
-                        <img src="${profilePicSrc}" 
-                            alt="${userName}" 
-                            class="post-author-avatar-overlay"
-                            onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=2a7f62&color=fff'">
-                        <h3 class="post-author-name-overlay">${userName}</h3>
-                    </div>
+            <div class="post-info-overlay" id="postInfoOverlay">  
+                <p class="post-date-overlay">${formatPostDate(timestamp)}</p>
+
+                <div class="post-author-wrapper" 
+                    onclick="window.location.href='/pages/profile.html?userId=${userId}'" 
+                    style="cursor: pointer; transition: opacity 0.2s ease;"
+                    onmouseover="this.style.opacity='0.8'" 
+                    onmouseout="this.style.opacity='1'">
+                    <img src="${profilePicSrc}" 
+                        alt="${userName}" 
+                        class="post-author-avatar-overlay"
+                        onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=2a7f62&color=fff'">
+                    <h3 class="post-author-name-overlay">${userName}</h3>
                 </div>
                 
                 <div class="post-interactions-overlay">

@@ -1,6 +1,6 @@
 // Get userId from URL parameter
 const urlParams = new URLSearchParams(window.location.search);
-const profileUserId = urlParams.get('userId');
+const profileUserId = parseInt(urlParams.get('userId')) || null;
 
 let currentUserId = null;
 let currentTab = 'posts';
@@ -14,7 +14,7 @@ async function checkCurrentUser() {
     const data = await response.json();
     
     if (data.loggedIn) {
-      currentUserId = data.user.id || null;
+      currentUserId = parseInt(data.user.id) || null;
     }
   } catch (error) {
     console.error('Error checking login:', error);
@@ -39,34 +39,10 @@ async function loadProfile() {
 
     const profile = data.profile;
 
-    // Update profile info
-    document.getElementById('profileName').textContent = profile.name || 'Unknown User';
-    document.getElementById('profileUsername').textContent = `@${profile.username || 'username'}`;
-    document.getElementById('profileBio').textContent = profile.bio || '';
-    
-    const locationEl = document.getElementById('profileLocation');
-    if (profile.location) {
-      locationEl.textContent = profile.location;
-      locationEl.style.display = 'block';
-    } else {
-      locationEl.style.display = 'none';
-    }
-
-    // Update stats
-    document.getElementById('followingCount').textContent = profile.followingCount || 0;
-    document.getElementById('followersCount').textContent = profile.followersCount || 0;
-    document.getElementById('postsCount').textContent = profile.postsCount || 0;
-
-    // Set profile picture
-    if (profile.profilePicture) {
-      document.getElementById('profilePic').src = profile.profilePicture + '?t=' + Date.now();
-    } else {
-      document.getElementById('profilePic').src = 
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=2a7f62&color=fff&size=150`;
-    }
+    // ... rest of your code ...
 
     // Show appropriate button (Follow or Edit Profile)
-    if (currentUserId && currentUserId == profileUserId) {
+    if (currentUserId && currentUserId === profileUserId) { // ← Use strict equality
       // This is the current user's profile
       document.getElementById('editProfileBtn').style.display = 'block';
       document.getElementById('followBtn').style.display = 'none';

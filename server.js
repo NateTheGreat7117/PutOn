@@ -304,6 +304,11 @@ let db;
         private_profile TEXT,
         show_size_recommendations TEXT,
         preferred_style TEXT,
+        hide_saved_content TEXT,
+        show_following TEXT,
+        show_followers TEXT,
+        language TEXT,
+        profile_picture TEXT,
         password_hash TEXT
       );
     `);
@@ -1211,8 +1216,8 @@ app.post("/signup", async (req, res) => {
 
 
     const result = await db.run(
-      "INSERT INTO users (name, username, email, bio, location, birthday, shirt_size, waist_size, chest_size, shoe_size, inseam, height, dark_mode, push_notifications, email_updates, private_profile, show_size_recommendations, preferred_style, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [name, username, email, "", "", "", "", "", "", "", "", "", "false", "false", "false", "false", "false", "", hashed]
+      "INSERT INTO users (name, username, email, bio, location, birthday, shirt_size, waist_size, chest_size, shoe_size, inseam, height, dark_mode, push_notifications, email_updates, private_profile, show_size_recommendations, preferred_style, hide_saved_content, show_following, show_followers, language, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [name, username, email, "", "", "", "", "", "", "", "", "", "false", "false", "false", "false", "false", "", "true", "true", "true", "english", hashed]
     );
 
 
@@ -1236,7 +1241,8 @@ app.get("/check-login", async (req, res) => {
     const user = await db.get(
       "SELECT name, username, email, bio, location, birthday, shirt_size, waist_size, chest_size, " + 
       "shoe_size, inseam, height, dark_mode, push_notifications, email_updates, private_profile, " +
-      "show_size_recommendations, preferred_style, profile_picture FROM users WHERE id = ?", 
+      "show_size_recommendations, preferred_style, profile_picture, hide_saved_content, " +
+      "show_following, show_followers, language FROM users WHERE id = ?", 
       [req.session.userId]
     );
 
@@ -1248,7 +1254,7 @@ app.get("/check-login", async (req, res) => {
     res.json({
       loggedIn: true,
       user: {
-        id: req.session.userId, // Add this!
+        id: req.session.userId,
         username: user.username,
         email: user.email,
         name: user.name,
@@ -1267,7 +1273,11 @@ app.get("/check-login", async (req, res) => {
         private_profile: user.private_profile,
         show_size_recommendations: user.show_size_recommendations,
         preferred_style: user.preferred_style,
-        profile_picture: user.profile_picture
+        profile_picture: user.profile_picture,
+        hide_saved_content: user.hide_saved_content,
+        show_following: user.show_following,
+        show_followers: user.show_followers,
+        language: user.language
       },
     });
   } catch (err) {
@@ -1313,7 +1323,8 @@ app.put("/update-user", async (req, res) => {
         shirt_size, waist_size, chest_size, shoe_size, inseam, height, 
         // Preferences
         dark_mode, push_notifications, email_updates, private_profile, 
-        show_size_recommendations, preferred_style } = req.body;
+        show_size_recommendations, preferred_style, hide_saved_content,
+        show_following, show_followers, language } = req.body;
 
     if (!name || !username ) {
       return res.status(400).json({ success: false, message: "Missing fields" });
@@ -1322,12 +1333,14 @@ app.put("/update-user", async (req, res) => {
     await db.run(
       "UPDATE users SET name = ?, username = ?, email = ?, bio = ?, location = ?, birthday = ?, shirt_size = ?, " + 
       "waist_size = ?, chest_size = ?, shoe_size = ?, inseam = ?, height = ?, dark_mode = ?, push_notifications = ?, " + 
-      "email_updates = ?, private_profile = ?, show_size_recommendations = ?, preferred_style = ? WHERE id = ?",
+      "email_updates = ?, private_profile = ?, show_size_recommendations = ?, preferred_style = ?, " +
+      "hide_saved_content = ?, show_following = ?, show_followers = ?, language = ? WHERE id = ?",
       [
         name, username, email, bio, location, birthday, shirt_size, 
         waist_size, chest_size, shoe_size, inseam, height, dark_mode, 
         push_notifications, email_updates, private_profile, 
-        show_size_recommendations, preferred_style, req.session.userId
+        show_size_recommendations, preferred_style, hide_saved_content,
+        show_following, show_followers, language, req.session.userId
       ]
     );
 
@@ -1400,6 +1413,27 @@ app.delete("/api/putons/:id", requireLogin, async (req, res) => {
   }
 });
 
+
+// ============================================
+// Build outfit route ROUTES
+// ============================================
+
+app.post('/api/outfits', requireLogin, async (req, res) => {
+  try {
+    const { name, items } = req.body;
+    const userId = req.session.userId;
+    
+    const result = await db.run(
+      'INSERT INTO outfits (user_id, name, description) VALUES (?, ?, ?)',
+      [userId, name, JSON.stringify(items)]
+    );
+    
+    res.json({ success: true, outfitId: result.lastID });
+  } catch (error) {
+    console.error('Error saving outfit:', error);
+    res.status(500).json({ success: false, message: 'Failed to save outfit' });
+  }
+});
 
 // ============================================
 // WISHLIST ROUTES
@@ -1537,13 +1571,45 @@ app.delete("/api/wardrobe/:id", requireLogin, async (req, res) => {
 app.get('/api/outfits', requireLogin, async (req, res) => {
   try {
     const userId = req.session.userId;
+    
+    // Get all outfits for the user
     const outfits = await db.all(
       'SELECT * FROM outfits WHERE user_id = ? ORDER BY created_at DESC',
       [userId]
     );
-    res.json({ success: true, outfits });
+    
+    // For each outfit, get its items
+    const outfitsWithItems = await Promise.all(outfits.map(async (outfit) => {
+      let items = [];
+      
+      if (outfit.description) {
+        try {
+          const parsedItems = JSON.parse(outfit.description);
+          
+          // Use the stored item data directly (includes the correct image URLs)
+          items = parsedItems.map(item => ({
+            id: item.itemId,
+            name: item.itemName || 'Unknown Item',
+            image: item.imageUrl, // This is the individual clothing piece image
+            category: item.category
+          }));
+        } catch (parseError) {
+          console.error('Error parsing outfit items:', parseError);
+        }
+      }
+      
+      return {
+        id: outfit.id,
+        name: outfit.name,
+        created_at: outfit.created_at,
+        items: items
+      };
+    }));
+    
+    res.json({ success: true, outfits: outfitsWithItems });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    console.error('Error fetching outfits:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 

@@ -615,26 +615,10 @@ html, body {
 }
 
 /* Top section - Profile info on top right */
-.post-header-overlay {
-    position: absolute;
-    top: 20px;
-    left: 0;
-    right: 0;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    
-    padding: 8px 12px;
-    pointer-events: auto;
-}
 
 .post-date-overlay,
 .post-author-wrapper {
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
     padding: 6px 12px;
-    border-radius: 14px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -642,8 +626,11 @@ html, body {
 
 .post-author-wrapper {
     display: flex;
+    position: absolute;
     align-items: center;
     gap: 8px;
+    bottom: -55px;
+    left: 10px;
 }
 
 .post-author-avatar-overlay {
@@ -657,20 +644,18 @@ html, body {
 .post-author-name-overlay {
     font-size: 14px;
     font-weight: 600;
-    color: white;
+    color: black;
     margin: 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Date on top left */
 .post-date-overlay {
+    position: absolute;
+    left: 10px;
+    top: -20px;
     font-size: 13px;
-    color: white;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
+    color: black;
     padding: 6px 12px;
-    border-radius: 12px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     pointer-events: auto;
 }
 
