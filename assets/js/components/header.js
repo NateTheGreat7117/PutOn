@@ -11,8 +11,7 @@ export async function loadHeader() {
     "build-outfit.html",
     "virtual-wardrobe.html",
     "wishlist.html",
-    "find-item.html",
-    "sales-discounts.html"
+    "brand-of-the-day.html",
   ];
 
   headerButtons.forEach((btn, i) => {

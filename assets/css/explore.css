@@ -205,10 +205,6 @@ html, body {
     } 
 }
 
-.footer {
-    margin-left: 202px;
-}
-
 .image-info-screen {
     display: none;
     position: fixed;
@@ -288,14 +284,13 @@ html, body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
-    gap: 15px;
-    padding: 0 20px;
+    padding: 20px;
     padding-left: 50px;
+    padding-top: 0px;
     height: 100%;
     overflow-y: auto;
-    padding: 20px;
     box-sizing: border-box;
 }
 
@@ -331,7 +326,8 @@ html, body {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
-    margin: 20px 0;
+    margin-bottom: 20px; /* Bottom margin for scrolling */
+    width: 100%; /* Ensure full width */
 }
 
 .clothing-item {
@@ -543,18 +539,19 @@ html, body {
 .image-info h2 {
     font-size: 18px;
     font-weight: 600;
-    margin: 24px 0 16px 0;
+    margin: 24px 0 20px 0; /* Increased bottom margin */
     color: #222;
     position: sticky;
     top: 0;
-    background: transparent;
+    background: white; /* Not transparent */
     padding: 12px 0;
     z-index: 10;
+    width: 100%; /* Ensure full width */
 }
 
 .image-info h2:first-child {
     margin-top: 0;
-    padding-top: 0;
+    padding-top: 12px; /* Add some top padding */
 }
 
 .info-section {
@@ -578,28 +575,6 @@ html, body {
     .clothing-item.expanded .clothing-item-image {
         width: 100%;
         height: 200px;
-    }
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(400px);
-        opacity: 0;
     }
 }
 

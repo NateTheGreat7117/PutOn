@@ -75,6 +75,64 @@ const upload = multer({
   }
 });
 
+const wishlistStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadDir = path.join(ROOT, 'assets/images/wishlist');
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error);
+    }
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    cb(null, `wishlist_${timestamp}${ext}`);
+  }
+});
+
+const uploadWishlistImage = multer({ 
+  storage: wishlistStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed'));
+    }
+  }
+});
+
+const outfitCoverStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadDir = path.join(ROOT, 'assets/images/outfits/covers');
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error);
+    }
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    cb(null, `outfit_cover_${timestamp}${ext}`);
+  }
+});
+
+const uploadOutfitCover = multer({ 
+  storage: outfitCoverStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed'));
+    }
+  }
+});
+
 
 const SQLiteStoreSession = SQLiteStore(session);
 
@@ -373,6 +431,7 @@ let db;
         name TEXT NOT NULL,
         description TEXT,
         created_at TEXT DEFAULT (datetime('now')),
+        cover_image TEXT,
         FOREIGN KEY (user_id) REFERENCES users(id)
       );
     `);
@@ -417,6 +476,18 @@ let db;
         created_at TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (user_id) REFERENCES users(id),
         UNIQUE(user_id, post_url)
+      );
+    `);
+
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS followers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        follower_id INTEGER NOT NULL,
+        following_id INTEGER NOT NULL,
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE(follower_id, following_id)
       );
     `);
 
@@ -610,6 +681,148 @@ app.post('/api/detect-clothing', async (req, res) => {
         total: detectedItems.length,
         message: 'Detection complete (fallback to mock data due to API error)'
       });
+  }
+});
+
+// ============================================
+// FOLLOW SYSTEM ROUTES
+// ============================================
+
+// Follow/Unfollow a user
+app.post('/api/follow', requireLogin, async (req, res) => {
+  try {
+    const { userId, action } = req.body;
+    const currentUserId = req.session.userId;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'User ID required' });
+    }
+
+    if (userId === currentUserId) {
+      return res.status(400).json({ success: false, message: 'Cannot follow yourself' });
+    }
+
+    if (action === 'follow') {
+      // Add follow relationship
+      await db.run(
+        'INSERT OR IGNORE INTO followers (follower_id, following_id) VALUES (?, ?)',
+        [currentUserId, userId]
+      );
+    } else if (action === 'unfollow') {
+      // Remove follow relationship
+      await db.run(
+        'DELETE FROM followers WHERE follower_id = ? AND following_id = ?',
+        [currentUserId, userId]
+      );
+    }
+
+    res.json({ 
+      success: true, 
+      isFollowing: action === 'follow'
+    });
+  } catch (error) {
+    console.error('Error toggling follow:', error);
+    res.status(500).json({ success: false, message: 'Failed to update follow status' });
+  }
+});
+
+// Get followers for current user
+app.get('/api/followers/:userId', async (req, res) => {
+  try {
+    const targetUserId = req.params.userId;
+    const currentUserId = req.session?.userId;
+    
+    // Get all users who follow the target user
+    const followers = await db.all(`
+      SELECT 
+        u.id, 
+        u.name, 
+        u.username, 
+        u.bio, 
+        u.profile_picture,
+        CASE WHEN f2.follower_id IS NOT NULL THEN 1 ELSE 0 END as isFollowing
+      FROM followers f
+      JOIN users u ON f.follower_id = u.id
+      LEFT JOIN followers f2 ON f2.follower_id = ? AND f2.following_id = u.id
+      WHERE f.following_id = ?
+      ORDER BY f.created_at DESC
+    `, [currentUserId || 0, targetUserId]);
+
+    res.json({ success: true, followers });
+  } catch (error) {
+    console.error('Error fetching followers:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch followers' });
+  }
+});
+
+// Get users that current user is following
+app.get('/api/following/:userId', async (req, res) => {
+  try {
+    const targetUserId = req.params.userId;
+    const currentUserId = req.session?.userId;
+    
+    // Get all users that the target user follows
+    const following = await db.all(`
+      SELECT 
+        u.id, 
+        u.name, 
+        u.username, 
+        u.bio, 
+        u.profile_picture,
+        CASE WHEN f2.follower_id IS NOT NULL THEN 1 ELSE 0 END as isFollowing
+      FROM followers f
+      JOIN users u ON f.following_id = u.id
+      LEFT JOIN followers f2 ON f2.follower_id = ? AND f2.following_id = u.id
+      WHERE f.follower_id = ?
+      ORDER BY f.created_at DESC
+    `, [currentUserId || 0, targetUserId]);
+
+    res.json({ success: true, following });
+  } catch (error) {
+    console.error('Error fetching following:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch following' });
+  }
+});
+
+// Check if current user follows another user
+app.get('/api/follow-status/:userId', requireLogin, async (req, res) => {
+  try {
+    const targetUserId = req.params.userId;
+    const currentUserId = req.session.userId;
+
+    const follow = await db.get(
+      'SELECT id FROM followers WHERE follower_id = ? AND following_id = ?',
+      [currentUserId, targetUserId]
+    );
+
+    res.json({ 
+      success: true, 
+      isFollowing: !!follow 
+    });
+  } catch (error) {
+    console.error('Error checking follow status:', error);
+    res.status(500).json({ success: false, message: 'Failed to check follow status' });
+  }
+});
+
+// Get follower/following counts for a user
+app.get('/api/follow-counts/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const [followersCount, followingCount] = await Promise.all([
+      db.get('SELECT COUNT(*) as count FROM followers WHERE following_id = ?', [userId]),
+      db.get('SELECT COUNT(*) as count FROM followers WHERE follower_id = ?', [userId])
+    ]);
+
+    res.json({
+      success: true,
+      followers: followersCount.count,
+      following: followingCount.count
+    });
+  } catch (error) {
+    console.error('Error getting follow counts:', error);
+    res.status(500).json({ success: false, message: 'Failed to get follow counts' });
   }
 });
 
@@ -1290,7 +1503,7 @@ app.post("/signup", async (req, res) => {
 
     const result = await db.run(
       "INSERT INTO users (name, username, email, bio, location, birthday, shirt_size, waist_size, chest_size, shoe_size, inseam, height, dark_mode, push_notifications, email_updates, private_profile, show_size_recommendations, preferred_style, hide_saved_content, show_following, show_followers, language, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [name, username, email, "", "", "", "", "", "", "", "", "", "false", "false", "false", "false", "false", "", "true", "true", "true", "english", hashed]
+      [name, username, email, "", "", "", "", "", "", "", "", "", "false", "false", "false", "false", "false", "all styles", "true", "true", "true", "english", hashed]
     );
 
 
@@ -1488,7 +1701,7 @@ app.delete("/api/putons/:id", requireLogin, async (req, res) => {
 
 
 // ============================================
-// Build outfit route ROUTES
+// OUTFIT ROUTES
 // ============================================
 
 app.post('/api/outfits', requireLogin, async (req, res) => {
@@ -1505,6 +1718,240 @@ app.post('/api/outfits', requireLogin, async (req, res) => {
   } catch (error) {
     console.error('Error saving outfit:', error);
     res.status(500).json({ success: false, message: 'Failed to save outfit' });
+  }
+});
+
+app.put('/api/outfits/:id', requireLogin, async (req, res) => {
+  try {
+    const outfitId = parseInt(req.params.id);
+    const { name, items } = req.body;
+    const userId = req.session.userId;
+
+    console.log('📝 Updating outfit:', { outfitId, name, itemCount: items?.length });
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Outfit name is required' 
+      });
+    }
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'At least one item is required' 
+      });
+    }
+
+    // Verify outfit belongs to user
+    const checkOwnership = await db.get(
+      'SELECT id, cover_image FROM outfits WHERE id = ? AND user_id = ?',
+      [outfitId, userId]
+    );
+
+    if (!checkOwnership) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Outfit not found or access denied' 
+      });
+    }
+
+    // Prepare items data for storage
+    const itemsData = items.map(item => ({
+      itemId: item.itemId || item.id,
+      itemName: item.name || item.itemName || '',
+      category: item.category || '',
+      imageUrl: item.image || item.imageUrl || ''
+    }));
+
+    // Update outfit with new data (preserve cover_image)
+    await db.run(
+      'UPDATE outfits SET name = ?, description = ? WHERE id = ?',
+      [name.trim(), JSON.stringify(itemsData), outfitId]
+    );
+
+    console.log('✅ Updated outfit successfully');
+
+    res.json({ 
+      success: true, 
+      message: 'Outfit updated successfully',
+      outfit: {
+        id: outfitId,
+        name: name.trim(),
+        cover_image: checkOwnership.cover_image, // Return existing cover image
+        items: itemsData
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error updating outfit:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to update outfit: ' + error.message 
+    });
+  }
+});
+
+app.post('/api/outfits/:id/cover', requireLogin, uploadOutfitCover.single('coverImage'), async (req, res) => {
+  try {
+    const outfitId = parseInt(req.params.id);
+    const userId = req.session.userId;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No image uploaded' });
+    }
+
+    // Verify outfit belongs to user
+    const outfit = await db.get(
+      'SELECT id, cover_image FROM outfits WHERE id = ? AND user_id = ?',
+      [outfitId, userId]
+    );
+
+    if (!outfit) {
+      // Delete uploaded file
+      await fs.unlink(req.file.path);
+      return res.status(404).json({ success: false, message: 'Outfit not found' });
+    }
+
+    const coverImageUrl = `/assets/images/outfits/covers/${req.file.filename}`;
+
+    // Update outfit with cover image
+    await db.run(
+      'UPDATE outfits SET cover_image = ? WHERE id = ?',
+      [coverImageUrl, outfitId]
+    );
+
+    // Delete old cover image if it exists
+    if (outfit.cover_image) {
+      const oldImagePath = path.join(ROOT, outfit.cover_image);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (error) {
+        console.log('Could not delete old cover image:', error);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Cover image uploaded successfully',
+      coverImage: coverImageUrl
+    });
+
+  } catch (error) {
+    console.error('❌ Error uploading cover image:', error);
+    
+    if (req.file) {
+      try {
+        await fs.unlink(req.file.path);
+      } catch (unlinkError) {
+        console.error('Error deleting file:', unlinkError);
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to upload cover image: ' + error.message 
+    });
+  }
+});
+
+app.delete('/api/outfits/:id/cover', requireLogin, async (req, res) => {
+  try {
+    const outfitId = parseInt(req.params.id);
+    const userId = req.session.userId;
+
+    // Verify outfit belongs to user
+    const outfit = await db.get(
+      'SELECT id, cover_image FROM outfits WHERE id = ? AND user_id = ?',
+      [outfitId, userId]
+    );
+
+    if (!outfit) {
+      return res.status(404).json({ success: false, message: 'Outfit not found' });
+    }
+
+    if (outfit.cover_image) {
+      // Delete the file
+      const imagePath = path.join(ROOT, outfit.cover_image);
+      try {
+        await fs.unlink(imagePath);
+      } catch (error) {
+        console.log('Could not delete cover image file:', error);
+      }
+
+      // Remove from database
+      await db.run('UPDATE outfits SET cover_image = NULL WHERE id = ?', [outfitId]);
+    }
+
+    res.json({
+      success: true,
+      message: 'Cover image removed'
+    });
+
+  } catch (error) {
+    console.error('❌ Error deleting cover image:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to delete cover image' 
+    });
+  }
+});
+
+// Get all outfits
+app.get('/api/outfits', requireLogin, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    
+    // Get all outfits for the user (now includes cover_image)
+    const outfits = await db.all(
+      'SELECT * FROM outfits WHERE user_id = ? ORDER BY created_at DESC',
+      [userId]
+    );
+    
+    // For each outfit, get its items
+    const outfitsWithItems = await Promise.all(outfits.map(async (outfit) => {
+      let items = [];
+      
+      if (outfit.description) {
+        try {
+          const parsedItems = JSON.parse(outfit.description);
+          
+          items = parsedItems.map(item => ({
+            id: item.itemId,
+            name: item.itemName || 'Unknown Item',
+            image: item.imageUrl,
+            category: item.category
+          }));
+        } catch (parseError) {
+          console.error('Error parsing outfit items:', parseError);
+        }
+      }
+      
+      return {
+        id: outfit.id,
+        name: outfit.name,
+        created_at: outfit.created_at,
+        cover_image: outfit.cover_image, // Include cover image
+        items: items
+      };
+    }));
+    
+    res.json({ success: true, outfits: outfitsWithItems });
+  } catch (error) {
+    console.error('Error fetching outfits:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Delete an outfit
+app.delete('/api/outfits/:id', requireLogin, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const outfitId = req.params.id;
+    await db.run('DELETE FROM outfits WHERE id = ? AND user_id = ?', [outfitId, userId]);
+    res.json({ success: true });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
   }
 });
 
@@ -1568,6 +2015,37 @@ app.delete("/api/wishlist/:id", requireLogin, async (req, res) => {
   } catch (err) {
     console.error("❌ Error deleting wishlist item:", err);
     res.status(500).json({ success: false, message: "Failed to delete item" });
+  }
+});
+
+app.post('/api/wishlist/upload-image', requireLogin, uploadWishlistImage.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No image uploaded' });
+    }
+
+    const imageUrl = `/assets/images/wishlist/${req.file.filename}`;
+
+    res.json({
+      success: true,
+      imageUrl: imageUrl
+    });
+
+  } catch (error) {
+    console.error('❌ Error uploading wishlist image:', error);
+    
+    if (req.file) {
+      try {
+        await fs.unlink(req.file.path);
+      } catch (unlinkError) {
+        console.error('Error deleting file:', unlinkError);
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to upload image: ' + error.message 
+    });
   }
 });
 
@@ -1686,64 +2164,6 @@ app.delete("/api/wardrobe/:id", requireLogin, async (req, res) => {
   } catch (err) {
     console.error("❌ Error deleting wardrobe item:", err);
     res.status(500).json({ success: false, message: "Failed to delete wardrobe item" });
-  }
-});
-
-// Get all outfits
-app.get('/api/outfits', requireLogin, async (req, res) => {
-  try {
-    const userId = req.session.userId;
-    
-    // Get all outfits for the user
-    const outfits = await db.all(
-      'SELECT * FROM outfits WHERE user_id = ? ORDER BY created_at DESC',
-      [userId]
-    );
-    
-    // For each outfit, get its items
-    const outfitsWithItems = await Promise.all(outfits.map(async (outfit) => {
-      let items = [];
-      
-      if (outfit.description) {
-        try {
-          const parsedItems = JSON.parse(outfit.description);
-          
-          // Use the stored item data directly (includes the correct image URLs)
-          items = parsedItems.map(item => ({
-            id: item.itemId,
-            name: item.itemName || 'Unknown Item',
-            image: item.imageUrl, // This is the individual clothing piece image
-            category: item.category
-          }));
-        } catch (parseError) {
-          console.error('Error parsing outfit items:', parseError);
-        }
-      }
-      
-      return {
-        id: outfit.id,
-        name: outfit.name,
-        created_at: outfit.created_at,
-        items: items
-      };
-    }));
-    
-    res.json({ success: true, outfits: outfitsWithItems });
-  } catch (error) {
-    console.error('Error fetching outfits:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// Delete an outfit
-app.delete('/api/outfits/:id', requireLogin, async (req, res) => {
-  try {
-    const userId = req.session.userId;
-    const outfitId = req.params.id;
-    await db.run('DELETE FROM outfits WHERE id = ? AND user_id = ?', [outfitId, userId]);
-    res.json({ success: true });
-  } catch (error) {
-    res.json({ success: false, message: error.message });
   }
 });
 

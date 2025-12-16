@@ -40,12 +40,10 @@
             <option value="shoes">Shoes</option>
             <option value="accessories">Accessories</option>
           </select>
-          <select id="priority-filter" class="liquid-select">
-            <option value="all">All Priorities</option>
-            <option value="high">High Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="low">Low Priority</option>
-          </select>
+          <button onclick="openModal()" class="add-item-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Add Item
+          </button>
         </div>
       </div>
 
@@ -58,7 +56,86 @@
       <div id="empty-state" class="empty-state hidden">
         <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
         <p class="empty-title">No wishlist items found</p>
-        <p class="empty-message">Add items you'd like to purchase in the future!</p>
+        <p class="empty-message">Click "Add Item" to start building your wishlist!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Item Modal -->
+  <div id="add-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Add to Wishlist</h2>
+        <button onclick="closeModal()" class="close-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Item URL -->
+      <div class="form-group">
+        <label class="form-label">Item URL (optional)</label>
+        <input type="url" id="item-url-input" class="form-input" placeholder="https://example.com" />
+      </div>
+
+      <!-- Image Upload -->
+      <div class="form-group">
+        <label class="form-label">Upload Image</label>
+        <input type="file" id="image-upload" accept="image/*" class="form-input" onchange="handleImageUpload(event)" />
+      </div>
+
+      <!-- Image Preview -->
+      <div id="image-preview-container" class="image-preview hidden">
+        <img id="image-preview" src="" alt="Preview" class="preview-img" />
+      </div>
+
+      <!-- Item Details Form -->
+      <div class="form-group">
+        <label class="form-label">Item Name *</label>
+        <input type="text" id="item-name" class="form-input" placeholder="e.g., Black Leather Jacket" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Category *</label>
+        <select id="item-category" class="form-input" required>
+          <option value="">Select a category</option>
+          <option value="tops">Tops</option>
+          <option value="bottoms">Bottoms</option>
+          <option value="dresses">Dresses</option>
+          <option value="outerwear">Outerwear</option>
+          <option value="shoes">Shoes</option>
+          <option value="accessories">Accessories</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Brand</label>
+        <input type="text" id="item-brand" class="form-input" placeholder="e.g., Nike" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Price</label>
+        <input type="text" id="item-price" class="form-input" placeholder="e.g., $99.99" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Color</label>
+        <input type="text" id="item-color" class="form-input" placeholder="e.g., Black" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Size</label>
+        <input type="text" id="item-size" class="form-input" placeholder="e.g., M, 32, 10" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea id="item-notes" class="form-textarea" rows="3" placeholder="Any additional notes about this item..."></textarea>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="modal-actions">
+        <button onclick="closeModal()" class="btn-cancel">Cancel</button>
+        <button onclick="saveItem()" class="btn-save">Add to Wishlist</button>
       </div>
     </div>
   </div>

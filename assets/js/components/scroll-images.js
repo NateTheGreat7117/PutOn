@@ -512,7 +512,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function getImageData(imageUrl) {
-        const relativePath = imageUrl.replace(window.location.origin, '');
+        const relativePath = imageUrl.replace(window.location.origin, '').replace("%20", " ");
+
+        console.log(relativePath);
+
         return imagesData.find(img => img.url === relativePath) || {
             url: relativePath,
             caption: '',
@@ -584,6 +587,9 @@ document.addEventListener("DOMContentLoaded", () => {
         
         currentIndex = index;
         
+        // Update URL with current post URL (not index!)
+        updateUrlWithPost(images[currentIndex].src);
+        
         reel.style.transform = `translateY(-${currentIndex * 100}%)`;
         
         const reelImages = reel.querySelectorAll('.reel-image');
@@ -608,6 +614,9 @@ document.addEventListener("DOMContentLoaded", () => {
             isScrolling = true;
             currentIndex++;
             
+            // Update URL with current image URL
+            updateUrlWithPost(images[currentIndex].src);
+            
             const reelImages = reel.querySelectorAll('.reel-image');
             
             reelImages[currentIndex - 1].classList.remove('active');
@@ -629,6 +638,9 @@ document.addEventListener("DOMContentLoaded", () => {
             isScrolling = true;
             currentIndex--;
             
+            // Update URL with current image URL
+            updateUrlWithPost(images[currentIndex].src);
+            
             const reelImages = reel.querySelectorAll('.reel-image');
             
             reelImages[currentIndex + 1].classList.remove('active');
@@ -645,16 +657,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    let scrollTimeout;
     imageHalf.addEventListener("wheel", (e) => {
-        if (!imageInfoScreen.classList.contains("active")) return;
-        e.preventDefault();
+    if (!imageInfoScreen.classList.contains("active")) return;
+    e.preventDefault();
+    
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
         if (e.deltaY > 0) showNextImage();
         else if (e.deltaY < 0) showPrevImage();
+    }, 50); // Debounce for smoother scrolling
     });
 
     document.addEventListener("keydown", (e) => {
         if (!imageInfoScreen.classList.contains("active")) return;
-        if (e.key === "ArrowRight" || e.key === "ArrowDown") showNextImage();
-        else if (e.key === "ArrowLeft" || e.key === "ArrowUp") showPrevImage();
+        if (e.key === "ArrowDown") showNextImage();
+        else if (e.key === "ArrowUp") showPrevImage();
     });
 });
+
+function updateUrlWithPost(imageUrl) {
+  const url = new URL(window.location);
+  if (imageUrl) {
+    // Encode the image URL to be URL-safe
+    const encodedUrl = encodeURIComponent(imageUrl);
+    url.searchParams.set('post', encodedUrl);
+  } else {
+    url.searchParams.delete('post');
+  }
+  window.history.pushState({}, '', url);
+}
