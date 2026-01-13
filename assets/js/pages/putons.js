@@ -1,7 +1,3 @@
-// ===============================
-// Wishlist JS (server-connected)
-// ===============================
-
 let items = [];
 let imagePreview = '';
 let uploadedFile = null;
@@ -74,7 +70,7 @@ function handleImageUpload(event) {
 }
 
 // ===============================
-// Save Item to Wishlist
+// Save Item to Put Ons
 // ===============================
 async function saveItem() {
   const name = document.getElementById('item-name').value.trim();
@@ -109,7 +105,7 @@ async function saveItem() {
       const formData = new FormData();
       formData.append('image', uploadedFile);
       
-      const uploadRes = await fetch('/api/wishlist/upload-image', {
+      const uploadRes = await fetch('/api/putons/upload-image', {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -124,13 +120,9 @@ async function saveItem() {
         return;
       }
     }
-    // If using URL, just use it directly
-    else if (imagePreview) {
-      imageUrl = imagePreview;
-    }
     
-    // Save item to wishlist
-    const res = await fetch('/api/wishlist', {
+    // Save item to Put Ons
+    const res = await fetch('/api/putons', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -152,22 +144,22 @@ async function saveItem() {
     if (data.success) {
       closeModal();
       loadItems();
-      showNotification('Item added to wishlist! ✨', 'success');
+      showNotification('Item added to Put Ons! ✨', 'success');
     } else {
       alert(data.message || 'Failed to add item');
     }
   } catch (error) {
     console.error('❌ Error saving item:', error);
-    alert('Failed to add item to wishlist');
+    alert('Failed to add item to Put Ons');
   }
 }
 
 // ===============================
-// Load Wishlist from backend
+// Load putons from backend
 // ===============================
 async function loadItems() {
   try {
-    const res = await fetch("/api/wishlist", {
+    const res = await fetch("/api/putons", {
       credentials: 'include'
     });
     const data = await res.json();
@@ -179,17 +171,17 @@ async function loadItems() {
     }
     renderItems();
   } catch (error) {
-    console.error("❌ Error loading wishlist:", error);
+    console.error("❌ Error loading Put Ons:", error);
     items = [];
     renderItems();
   }
 }
 
 // ===============================
-// Render Wishlist
+// Render Put Ons
 // ===============================
 function renderItems() {
-  const wishlistView = document.getElementById('wishlist-view');
+  const putonsView = document.getElementById('putons-view');
   const emptyState = document.getElementById('empty-state');
 
   const searchQuery = document.getElementById('search-input').value.toLowerCase();
@@ -202,12 +194,12 @@ function renderItems() {
   });
 
   if (filteredItems.length === 0) {
-    wishlistView.innerHTML = '';
+    putonsView.innerHTML = '';
     emptyState.classList.remove('hidden');
   } else {
     emptyState.classList.add('hidden');
-    wishlistView.innerHTML = filteredItems.map((item, index) => `
-      <div class="wishlist-card" style="--card-index: ${index}">
+    putonsView.innerHTML = filteredItems.map((item, index) => `
+      <div class="puton-card" style="--card-index: ${index}">
         <div class="item-image-wrapper">
           <img src="${item.image || '/assets/images/icons/placeholder.jpg'}" alt="${item.name}" class="item-image" />
           <button onclick="deleteItem('${item.id}')" class="delete-btn">
@@ -232,13 +224,13 @@ function renderItems() {
 }
 
 // ===============================
-// Delete Wishlist Item
+// Delete Put On
 // ===============================
 async function deleteItem(id) {
-  if (!confirm('Are you sure you want to remove this item from your wishlist?')) return;
+  if (!confirm('Are you sure you want to remove this item from Put Ons?')) return;
 
   try {
-    const res = await fetch(`/api/wishlist/${id}`, { 
+    const res = await fetch(`/api/putons/${id}`, { 
       method: "DELETE",
       credentials: 'include'
     });
@@ -247,12 +239,12 @@ async function deleteItem(id) {
     if (data.success) {
       items = items.filter(item => String(item.id) !== String(id));
       renderItems();
-      showNotification('Item removed from wishlist', 'success');
+      showNotification('Item removed from Put Ons', 'success');
     } else {
       alert("Failed to delete item.");
     }
   } catch (error) {
-    console.error("❌ Error deleting wishlist item:", error);
+    console.error("❌ Error deleting Put On item:", error);
     alert("Failed to delete item.");
   }
 }
@@ -264,7 +256,7 @@ async function moveToWardrobe(id) {
   const item = items.find(i => String(i.id) === String(id));
   if (!item) return;
 
-  if (!confirm('Move this item to your wardrobe? It will be removed from your wishlist.')) return;
+  if (!confirm('Move this item to your wardrobe? It will be removed from Put Ons.')) return;
 
   try {
     // Add to wardrobe
@@ -287,7 +279,7 @@ async function moveToWardrobe(id) {
     const addData = await addRes.json();
 
     if (addData.success) {
-      // Delete from wishlist
+      // Delete from Put Ons
       await deleteItem(id);
       showNotification('✅ Item moved to wardrobe successfully!', 'success');
     } else {
@@ -331,7 +323,7 @@ function showNotification(message, type = 'info') {
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.handleImageUpload = handleImageUpload;
-window.handleImageUrl = handleImageUrl;
+// window.handleImageUrl = handleImageUrl;
 window.saveItem = saveItem;
 window.deleteItem = deleteItem;
 window.moveToWardrobe = moveToWardrobe;

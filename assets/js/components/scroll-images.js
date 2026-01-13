@@ -277,8 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <p><strong>From:</strong> User's wardrobe</p>
                     <div class="action-buttons">
                         <button class="btn-find-replacements" data-index="${index}">Find Replacements</button>
-                        <button class="btn-add-wishlist" data-index="${index}">Add to Wishlist</button>
-                        <button class="btn-add-pieces" data-index="${index}">Save to Put Ons</button>
+                        <button class="btn-add-pieces" data-index="${index}">Add to Put Ons</button>
                     </div>
                 </div>
             </div>
@@ -308,17 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        // Add click handlers for wishlist buttons
-        const addWishlistBtns = clothingDetails.querySelectorAll('.btn-add-wishlist');
-        addWishlistBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const index = parseInt(btn.dataset.index);
-                handleAddWishlist(items[index], btn);
-            });
-        });
-
-        // Add click handlers for add to pieces buttons
+        // Add click handlers for "Add to Put Ons" buttons
         const addPiecesBtns = clothingDetails.querySelectorAll('.btn-add-pieces');
         addPiecesBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -359,8 +348,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await res.json();
 
             if (data.success) {
-                console.log("✅ Added to saved to Put Ons:", data);
-                showNotification("Item saved to Put Ons!");
+                console.log("✅ Added to Put Ons:", data);
+                showNotification("Item added to Put Ons!");
 
                 const originalWidth = button.offsetWidth;
                 const originalHeight = button.offsetHeight;
@@ -372,20 +361,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 button.disabled = true;
 
                 setTimeout(() => {
-                    button.textContent = "Save to Put Ons";
+                    button.textContent = "Add to Put Ons";
                     button.style.background = "";
                     button.disabled = false;
                 }, 2000);
             } else if (res.status === 401) {
-                alert("Please log in to save putons.");
+                alert("Please log in to add items to Put Ons.");
             } else {
-                console.error("❌ Failed to add put on:", data.message);
-                showNotification("Failed to save put on.", "error");
+                console.error("❌ Failed to add to Put Ons:", data.message);
+                showNotification("Failed to add to Put Ons.", "error");
             }
 
         } catch (err) {
-            console.error("❌ Error adding piece:", err);
-            showNotification("Error saving piece. Please try again.", "error");
+            console.error("❌ Error adding item:", err);
+            showNotification("Error adding item. Please try again.", "error");
         }
     }
 
@@ -394,61 +383,6 @@ document.addEventListener("DOMContentLoaded", () => {
             <h2>Outfit Details</h2>
             <p>No items have been tagged in this post.</p>
         `;
-    }
-
-    async function handleAddWishlist(item, button) {
-        try {
-            const wishlistItem = {
-                name: item.name || "Unnamed item",
-                type: item.category || "Unknown",
-                brand: item.brand || "",
-                color: item.color || "",
-                size: item.size || "",
-                price: item.price || "",
-                image: item.image || "",
-                category: item.category || "misc",
-                notes: ""
-            };
-
-            const res = await fetch("/api/wishlist", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(wishlistItem),
-                credentials: "include"
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-                console.log("✅ Added to wishlist:", data.item);
-                showNotification("Added to wishlist!");
-
-                // Visual feedback
-                const originalWidth = button.offsetWidth;
-                const originalHeight = button.offsetHeight;
-
-                button.textContent = "✓ Added!";
-                button.style.background = "#4CAF50";
-                button.style.width = `${originalWidth}px`;
-                button.style.height = `${originalHeight}px`;
-                button.disabled = true;
-
-                setTimeout(() => {
-                    button.textContent = "Add to Wishlist";
-                    button.style.background = "";
-                    button.disabled = false;
-                }, 2000);
-            } else if (res.status === 401) {
-                alert("Please log in to add items to your wishlist.");
-            } else {
-                console.error("❌ Failed to add to wishlist:", data.message);
-                showNotification("Error adding to wishlist.", "error");
-            }
-
-        } catch (err) {
-            console.error("❌ Error adding to wishlist:", err);
-            showNotification("Error adding to wishlist.", "error");
-        }
     }
 
     function showNotification(message, type = 'success') {

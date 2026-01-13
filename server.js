@@ -14,136 +14,57 @@ import multer from 'multer';
 import fs from 'fs/promises';
 
 
-// Configure multer for profile picture uploads
-const profilePicStorage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const uploadDir = path.join(ROOT, 'assets/images/profile-pictures');
-    try {
-      await fs.mkdir(uploadDir, { recursive: true });
-      cb(null, uploadDir);
-    } catch (error) {
-      cb(error);
-    }
-  },
-  filename: (req, file, cb) => {
-    const userId = req.session.userId;
-    const ext = path.extname(file.originalname);
-    cb(null, `user_${userId}_${Date.now()}${ext}`);
-  }
-});
-
-const uploadProfilePic = multer({ 
-  storage: profilePicStorage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images are allowed'));
-    }
-  }
-})
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const uploadDir = path.join(ROOT, 'assets/images/outfits/user-posts');
-    try {
-      await fs.mkdir(uploadDir, { recursive: true });
-      cb(null, uploadDir);
-    } catch (error) {
-      cb(error);
-    }
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename
-    const timestamp = Date.now();
-    const ext = path.extname(file.originalname);
-    cb(null, `post_${timestamp}${ext}`);
-  }
-});
-
-const upload = multer({ 
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images are allowed'));
-    }
-  }
-});
-
-const wishlistStorage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const uploadDir = path.join(ROOT, 'assets/images/wishlist');
-    try {
-      await fs.mkdir(uploadDir, { recursive: true });
-      cb(null, uploadDir);
-    } catch (error) {
-      cb(error);
-    }
-  },
-  filename: (req, file, cb) => {
-    const timestamp = Date.now();
-    const ext = path.extname(file.originalname);
-    cb(null, `wishlist_${timestamp}${ext}`);
-  }
-});
-
-const uploadWishlistImage = multer({ 
-  storage: wishlistStorage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images are allowed'));
-    }
-  }
-});
-
-const outfitCoverStorage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const uploadDir = path.join(ROOT, 'assets/images/outfits/covers');
-    try {
-      await fs.mkdir(uploadDir, { recursive: true });
-      cb(null, uploadDir);
-    } catch (error) {
-      cb(error);
-    }
-  },
-  filename: (req, file, cb) => {
-    const timestamp = Date.now();
-    const ext = path.extname(file.originalname);
-    cb(null, `outfit_cover_${timestamp}${ext}`);
-  }
-});
-
-const uploadOutfitCover = multer({ 
-  storage: outfitCoverStorage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images are allowed'));
-    }
-  }
-});
-
-
-const SQLiteStoreSession = SQLiteStore(session);
-
 // Load environment variables FIRST
 dotenv.config();
 
-// Debug: Check if API key is loaded
-console.log('🔑 API Key loaded:', process.env.HUGGINGFACE_API_KEY ? 'YES ✓' : 'NO ✗');
-if (process.env.HUGGINGFACE_API_KEY) {
-  console.log('🔑 API Key preview:', process.env.HUGGINGFACE_API_KEY.substring(0, 10) + '...');
-}
+const SQLiteStoreSession = SQLiteStore(session);
+
+const createStorage = (folder, prefix) => multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadDir = path.join(ROOT, folder);
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error);
+    }
+  },
+  filename: (req, file, cb) => {
+    const timestamp = Date.now();
+    const ext = path.extname(file.originalname);
+    const userId = req.session?.userId || 'guest';
+    cb(null, `${prefix}_${userId}_${timestamp}${ext}`);
+  }
+});
+
+// Helper function to create multer upload
+const createUpload = (storage, sizeLimit) => multer({
+  storage,
+  limits: { fileSize: sizeLimit * 1024 * 1024 }, // Convert MB to bytes
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed'));
+    }
+  }
+});
+
+// Profile pictures
+const profilePicStorage = createStorage('assets/images/profile-pictures', 'user');
+const uploadProfilePic = createUpload(profilePicStorage, 5); // 5MB
+
+// Post images
+const postStorage = createStorage('assets/images/outfits/user-posts', 'post');
+const upload = createUpload(postStorage, 10); // 10MB
+
+// Put On images
+const putonStorage = createStorage('assets/images/putons', 'puton');
+const uploadPutonImage = createUpload(putonStorage, 5); // 5MB
+
+// Outfit cover images
+const outfitCoverStorage = createStorage('assets/images/outfits/covers', 'outfit_cover');
+const uploadOutfitCover = createUpload(outfitCoverStorage, 10); // 10MB
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -372,24 +293,6 @@ let db;
     `);
 
     await db.exec(`
-      CREATE TABLE IF NOT EXISTS wishlist (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        name TEXT,
-        type TEXT,
-        brand TEXT,
-        color TEXT,
-        size TEXT,
-        price TEXT,
-        image TEXT,
-        category TEXT,
-        notes TEXT,
-        addedAt TEXT,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-      );
-    `);
-
-    await db.exec(`
       CREATE TABLE IF NOT EXISTS putons (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
@@ -403,7 +306,8 @@ let db;
         category TEXT,
         notes TEXT,
         source_image TEXT,
-        added_at TEXT
+        added_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id)
       );
     `);
 
@@ -534,153 +438,156 @@ app.get('/test', (req, res) => {
   });
 });
 
+// ============================================
+// PUT ONS ROUTES (CONSOLIDATED)
+// ============================================
 
-// API endpoint for clothing detection with FREE AI
-app.post('/api/detect-clothing', async (req, res) => {
+// ✅ Add new puton item
+app.post("/api/putons", requireLogin, async (req, res) => {
   try {
-    const { imageUrl } = req.body;
-   
-    console.log('📸 Analyzing image:', imageUrl);
-   
-    if (!imageUrl) {
-      return res.status(400).json({
-        success: false,
-        error: 'No image URL provided'
-      });
+    const { name, type, brand, color, size, price, image, category, notes, sourceImage } = req.body;
+    const userId = req.session.userId;
+
+    if (!name || !type) {
+      return res.status(400).json({ success: false, message: "Missing name or type" });
     }
-   
-    // Check if Hugging Face API key is set
-    const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
-   
-    console.log('🔍 Checking API key... Key exists:', !!HF_API_KEY);
-   
-    if (!HF_API_KEY) {
-      console.log('⚠️ No Hugging Face API key found, using mock data');
-      console.log('💡 Get a FREE API key at: https://huggingface.co/settings/tokens');
-      // Fallback to mock data if no API key
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const detectedItems = generateClothingData();
-      return res.json({
-        success: true,
-        items: detectedItems,
-        total: detectedItems.length,
-        message: 'Detection complete (mock data - set HUGGINGFACE_API_KEY for free AI detection)'
-      });
-    }
-   
-    // Use FREE Hugging Face AI vision detection
-    console.log('🤖 Using Hugging Face Vision API (FREE) for real detection...');
-   
-    try {
-      // First, fetch the image to convert to base64
-      let imageData;
-      if (imageUrl.startsWith('http://localhost') || imageUrl.startsWith('/')) {
-        // Local image - read from file system
-        const fs = await import('fs');
-        const fsPromises = await import('fs/promises');
-       
-        // Convert URL to file path
-        let imagePath = imageUrl.replace('http://localhost:3000', '').replace('http://localhost:' + PORT, '');
-        if (imagePath.startsWith('/')) {
-          imagePath = path.join(ROOT, imagePath);
-        }
-       
-        console.log('📂 Reading local file:', imagePath);
-       
-        try {
-          imageData = await fsPromises.readFile(imagePath);
-        } catch (fileError) {
-          console.error('File read error:', fileError.message);
-          throw new Error(`Could not read image file: ${fileError.message}`);
-        }
-      } else {
-        // Remote image - fetch it
-        const imgResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-        imageData = Buffer.from(imgResponse.data);
+
+    const addedAt = new Date().toISOString();
+
+    const result = await db.run(
+      `INSERT INTO putons (user_id, name, type, brand, color, size, price, image, category, notes, source_image, added_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, name, type, brand, color, size, price, image, category, notes, sourceImage, addedAt]
+    );
+
+    res.json({
+      success: true,
+      message: "Item added to Put Ons!",
+      item: { 
+        id: result.lastID, 
+        name, 
+        type, 
+        brand, 
+        color, 
+        size, 
+        price, 
+        image, 
+        category, 
+        notes, 
+        sourceImage,
+        addedAt 
       }
-     
-      // Resize image if it's too large (max 1MB for free tier)
-      const sharp = (await import('sharp')).default;
-      console.log('🖼️ Resizing image to reduce size...');
-     
-      imageData = await sharp(imageData)
-        .resize(800, 800, {
-          fit: 'inside',
-          withoutEnlargement: true
-        })
-        .jpeg({ quality: 80 })
-        .toBuffer();
-     
-      console.log('📦 Image size:', (imageData.length / 1024).toFixed(2), 'KB');
-     
-      // Use ViT-GPT2 model for image captioning (more reliable)
-      console.log('🔄 Sending image to Hugging Face API...');
-     
-      const response = await axios.post(
-        'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base',
-        imageData,
-        {
-          headers: {
-            'Authorization': `Bearer ${HF_API_KEY}`,
-            "Content-Type": "application/octet-stream"
-          },
-          timeout: 30000 // 30 second timeout
-        }
-      );
-     
-      console.log('📥 Response status:', response.status);
-      console.log('📥 Response data:', JSON.stringify(response.data));
-     
-      // Handle different response formats
-      let caption = '';
-      if (Array.isArray(response.data) && response.data.length > 0) {
-        caption = response.data[0]?.generated_text || '';
-      } else if (response.data.error) {
-        // Model is loading
-        console.log('⏳ Model is loading, please wait...');
-        throw new Error('Model is still loading. Please try again in a few seconds.');
-      }
-     
-      console.log('🤖 AI Caption:', caption);
-     
-      // Parse the caption to extract clothing items
-      const detectedItems = parseClothingFromCaption(caption);
-     
-      console.log('✅ Detected', detectedItems.length, 'items');
-     
-      res.json({
-        success: true,
-        items: detectedItems,
-        total: detectedItems.length,
-        message: 'Detection complete (FREE AI-powered by Hugging Face)'
-      });
-     
-    } catch (aiError) {
-        console.error('AI API Error Details:', {
-          message: aiError.message,
-          status: aiError.response?.status,
-          data: aiError.response?.data
-        });
-      
-        // If it's a 503 or model loading error, give helpful message
-        if (aiError.response?.status === 503 || aiError.message.includes('loading')) {
-          throw new Error('AI model is warming up. Please wait 10-20 seconds and try again.');
-        }
-      
-        throw aiError;
+    });
+  } catch (err) {
+    console.error("❌ Error adding Put On item:", err);
+    res.status(500).json({ success: false, message: "Failed to add Put On item" });
+  }
+});
+
+// ✅ Get all puton items for the logged-in user
+app.get("/api/putons", requireLogin, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const items = await db.all(
+      "SELECT * FROM putons WHERE user_id = ? ORDER BY added_at DESC", 
+      [userId]
+    );
+    res.json({ success: true, items });
+  } catch (err) {
+    console.error("❌ Error fetching Put Ons:", err);
+    res.status(500).json({ success: false, message: "Failed to load Put Ons" });
+  }
+});
+
+// ✅ Update a puton item
+app.put("/api/putons/:id", requireLogin, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const itemId = req.params.id;
+    const { name, type, brand, color, size, price, category, notes } = req.body;
+
+    if (!name || !type) {
+      return res.status(400).json({ success: false, message: "Name and type are required" });
     }
-   
+
+    // Verify the item belongs to the user
+    const existingItem = await db.get(
+      "SELECT id FROM putons WHERE id = ? AND user_id = ?",
+      [itemId, userId]
+    );
+
+    if (!existingItem) {
+      return res.status(404).json({ success: false, message: "Item not found" });
+    }
+
+    await db.run(
+      `UPDATE putons 
+       SET name = ?, type = ?, brand = ?, color = ?, size = ?, price = ?, category = ?, notes = ?
+       WHERE id = ? AND user_id = ?`,
+      [name, type, brand || '', color || '', size || '', price || '', category || '', notes || '', itemId, userId]
+    );
+
+    res.json({
+      success: true,
+      message: "Item updated successfully!",
+      item: { id: parseInt(itemId), name, type, brand, color, size, price, category, notes }
+    });
+  } catch (err) {
+    console.error("❌ Error updating Put On item:", err);
+    res.status(500).json({ success: false, message: "Failed to update Put On item" });
+  }
+});
+
+// ✅ Delete a puton item
+app.delete("/api/putons/:id", requireLogin, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const itemId = req.params.id;
+    const result = await db.run(
+      "DELETE FROM putons WHERE id = ? AND user_id = ?", 
+      [itemId, userId]
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ success: false, message: "Item not found" });
+    }
+
+    res.json({ success: true, message: "Item deleted from Put Ons" });
+  } catch (err) {
+    console.error("❌ Error deleting Put On item:", err);
+    res.status(500).json({ success: false, message: "Failed to delete item" });
+  }
+});
+
+// ✅ Upload image for puton item
+app.post('/api/putons/upload-image', requireLogin, uploadPutonImage.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No image uploaded' });
+    }
+
+    const imageUrl = `/assets/images/putons/${req.file.filename}`;
+
+    res.json({
+      success: true,
+      imageUrl: imageUrl
+    });
+
   } catch (error) {
-      console.error('❌ Error:', error.message);
+    console.error('❌ Error uploading Put On image:', error);
     
-      // Fallback to mock data on error
-      const detectedItems = generateClothingData();
-      res.json({
-        success: true,
-        items: detectedItems,
-        total: detectedItems.length,
-        message: 'Detection complete (fallback to mock data due to API error)'
-      });
+    if (req.file) {
+      try {
+        await fs.unlink(req.file.path);
+      } catch (unlinkError) {
+        console.error('Error deleting file:', unlinkError);
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to upload image: ' + error.message 
+    });
   }
 });
 
@@ -1639,68 +1546,6 @@ app.put("/update-user", async (req, res) => {
 
 
 // ============================================
-// Put On Routes
-// ============================================
-
-app.post("/api/putons", async (req, res) => {
-  try {
-    if (!req.session.userId) {
-      return res.status(401).json({ success: false, message: "Not logged in" });
-    }
-
-    const { name, type, brand, color, size, price, image, category, notes, sourceImage } = req.body;
-
-    await db.run(
-      `INSERT INTO putons (user_id, name, type, brand, color, size, price, image, category, notes, source_image, added_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
-      [req.session.userId, name, type, brand, color, size, price, image, category, notes, sourceImage]
-    );
-
-    res.json({ success: true, message: "Put on added successfully!" });
-  } catch (err) {
-    console.error("Error adding put on:", err);
-    res.status(500).json({ success: false, message: "Database error" });
-  }
-});
-
-// ✅ Get all "Put Ons" for the logged-in user
-app.get("/api/putons", requireLogin, async (req, res) => {
-  try {
-    const userId = req.session.userId;
-    const putons = await db.all(
-      "SELECT * FROM putons WHERE user_id = ? ORDER BY added_at DESC",
-      [userId]
-    );
-    res.json({ success: true, items: putons });
-  } catch (err) {
-    console.error("❌ Error fetching put on:", err);
-    res.status(500).json({ success: false, message: "Failed to load put ons" });
-  }
-});
-
-// ✅ Delete a put on
-app.delete("/api/putons/:id", requireLogin, async (req, res) => {
-  try {
-    const userId = req.session.userId;
-    const itemId = req.params.id;
-    const result = await db.run(
-      "DELETE FROM putons WHERE id = ? AND user_id = ?",
-      [itemId, userId]
-    );
-
-    if (result.changes === 0) {
-      return res.status(404).json({ success: false, message: "Item not found" });
-    }
-
-    res.json({ success: true, message: "Put on deleted" });
-  } catch (err) {
-    console.error("❌ Error deleting put on:", err);
-    res.status(500).json({ success: false, message: "Failed to delete put on" });
-  }
-});
-
-
-// ============================================
 // OUTFIT ROUTES
 // ============================================
 
@@ -1952,100 +1797,6 @@ app.delete('/api/outfits/:id', requireLogin, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     res.json({ success: false, message: error.message });
-  }
-});
-
-// ============================================
-// WISHLIST ROUTES
-// ============================================
-
-// ✅ Add new wishlist item
-app.post("/api/wishlist", requireLogin, async (req, res) => {
-  try {
-    const { name, type, brand, color, size, price, image, category, notes } = req.body;
-    const userId = req.session.userId;
-
-    if (!name || !type) {
-      return res.status(400).json({ success: false, message: "Missing name or type" });
-    }
-
-    const addedAt = new Date().toISOString();
-
-    const result = await db.run(
-      `INSERT INTO wishlist (user_id, name, type, brand, color, size, price, image, category, notes, addedAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, name, type, brand, color, size, price, image, category, notes, addedAt]
-    );
-
-    res.json({
-      success: true,
-      message: "Item added to wishlist!",
-      item: { id: result.lastID, name, type, brand, color, size, price, image, category, notes, addedAt }
-    });
-  } catch (err) {
-    console.error("❌ Error adding wishlist item:", err);
-    res.status(500).json({ success: false, message: "Failed to add wishlist item" });
-  }
-});
-
-// ✅ Get all wishlist items for the logged-in user
-app.get("/api/wishlist", requireLogin, async (req, res) => {
-  try {
-    const userId = req.session.userId;
-    const items = await db.all("SELECT * FROM wishlist WHERE user_id = ? ORDER BY addedAt DESC", [userId]);
-    res.json({ success: true, items });
-  } catch (err) {
-    console.error("❌ Error fetching wishlist:", err);
-    res.status(500).json({ success: false, message: "Failed to load wishlist" });
-  }
-});
-
-// ✅ Delete a wishlist item
-app.delete("/api/wishlist/:id", requireLogin, async (req, res) => {
-  try {
-    const userId = req.session.userId;
-    const itemId = req.params.id;
-    const result = await db.run("DELETE FROM wishlist WHERE id = ? AND user_id = ?", [itemId, userId]);
-
-    if (result.changes === 0) {
-      return res.status(404).json({ success: false, message: "Item not found" });
-    }
-
-    res.json({ success: true, message: "Item deleted" });
-  } catch (err) {
-    console.error("❌ Error deleting wishlist item:", err);
-    res.status(500).json({ success: false, message: "Failed to delete item" });
-  }
-});
-
-app.post('/api/wishlist/upload-image', requireLogin, uploadWishlistImage.single('image'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No image uploaded' });
-    }
-
-    const imageUrl = `/assets/images/wishlist/${req.file.filename}`;
-
-    res.json({
-      success: true,
-      imageUrl: imageUrl
-    });
-
-  } catch (error) {
-    console.error('❌ Error uploading wishlist image:', error);
-    
-    if (req.file) {
-      try {
-        await fs.unlink(req.file.path);
-      } catch (unlinkError) {
-        console.error('Error deleting file:', unlinkError);
-      }
-    }
-    
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to upload image: ' + error.message 
-    });
   }
 });
 

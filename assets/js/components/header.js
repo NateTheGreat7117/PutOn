@@ -10,7 +10,7 @@ export async function loadHeader() {
     "explore.html",
     "build-outfit.html",
     "virtual-wardrobe.html",
-    "wishlist.html",
+    "putons.html",
     "brand-of-the-day.html",
   ];
 

@@ -210,12 +210,13 @@ html, body {
     position: fixed;
     left: 250px;
     top: 150px;
-    width: 90%;
+    width: calc(100% - 300px);
     height: 75vh;
 }
 
 .filter-side-bar.collapsed ~ .image-info-screen {
-    left: 150px;
+    left: 50px;
+    width: calc(100% - 100px);
 }
 
 .image-info-screen .image-half {
@@ -504,17 +505,6 @@ html, body {
 
 .btn-add-pieces:hover {
     background: #236b52;
-}
-
-.btn-add-wishlist {
-    background: #fff;
-    color: #333;
-    border: 2px solid #333;
-}
-
-.btn-add-wishlist:hover {
-    background: #333;
-    color: #fff;
 }
 
 .clothing-item p {
